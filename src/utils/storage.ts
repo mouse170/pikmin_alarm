@@ -54,7 +54,8 @@ export const DEFAULT_SETTINGS: UserSettings = {
   vibrationEnabled: true,
   notificationsEnabled: true,
   oledHudMode: false,
-  autoCooldownMinutes: 15
+  autoCooldownMinutes: 15,
+  theme: 'oled',
 };
 
 export function loadSpots(): MushroomSpot[] {

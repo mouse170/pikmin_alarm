@@ -20,8 +20,9 @@ import { Plus, CheckCircle, Clock } from 'lucide-react';
 export const App: React.FC = () => {
   const [spots, setSpots] = useState<MushroomSpot[]>([]);
   const [quota, setQuota] = useState<DailyQuota>({ remaining: 3, lastResetDate: '' });
-  const [settings] = useState<UserSettings>(loadSettings());
+  const [settings, setSettings] = useState<UserSettings>(loadSettings());
   const [currentTime, setCurrentTime] = useState<number>(Date.now());
+  const [theme, setTheme] = useState<'oled' | 'light'>(settings.theme || 'oled');
 
   // 彈窗狀態
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
@@ -52,6 +53,33 @@ export const App: React.FC = () => {
       setNotificationsEnabled(Notification.permission === 'granted');
     }
   }, []);
+
+  // 同步主題設定到 DOM
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      const root = document.documentElement;
+      if (theme === 'light') {
+        root.classList.remove('dark');
+        root.style.backgroundColor = '#f8fafc';
+        document.body.style.backgroundColor = '#f8fafc';
+      } else {
+        root.classList.add('dark');
+        root.style.backgroundColor = '#000000';
+        document.body.style.backgroundColor = '#000000';
+      }
+    }
+  }, [theme]);
+
+  // 切換主題
+  const handleToggleTheme = () => {
+    setTheme((prev) => {
+      const nextTheme: 'oled' | 'light' = prev === 'oled' ? 'light' : 'oled';
+      const updatedSettings: UserSettings = { ...settings, theme: nextTheme };
+      setSettings(updatedSettings);
+      saveSettings(updatedSettings);
+      return nextTheme;
+    });
+  };
 
   // 當 spots 異動時自動存檔
   useEffect(() => {
@@ -190,7 +218,6 @@ export const App: React.FC = () => {
 
   // 更新卡片狀態
   const handleUpdateSpot = useCallback((updated: MushroomSpot) => {
-    // 若重設或重新計時，自已警示列表中解除註冊
     alertedSpotIdsRef.current.delete(updated.id);
     setSpots((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
   }, []);
@@ -208,7 +235,7 @@ export const App: React.FC = () => {
     saveSpots(INITIAL_DEMO_SPOTS);
   };
 
-  // 篩選與排序
+  // 篩選
   const filteredSpots = spots.filter((s) => {
     if (filterMode === 'active') {
       return s.status === 'cooldown' || s.status === 'battling';
@@ -219,12 +246,16 @@ export const App: React.FC = () => {
     return true;
   });
 
-  // 統計數據
   const readyCount = spots.filter((s) => s.status === 'ready').length;
   const activeCount = spots.filter((s) => s.status === 'cooldown' || s.status === 'battling').length;
+  const isLight = theme === 'light';
 
   return (
-    <div className="min-h-screen bg-black text-neutral-100 flex flex-col selection:bg-neutral-800">
+    <div
+      className={`min-h-screen flex flex-col transition-colors ${
+        isLight ? 'bg-slate-50 text-slate-900 selection:bg-slate-200' : 'bg-black text-neutral-100 selection:bg-neutral-800'
+      }`}
+    >
       {/* 頂部導航列與額度條 */}
       <Header
         quota={quota}
@@ -237,18 +268,28 @@ export const App: React.FC = () => {
         onOpenGuide={() => setIsGuideOpen(true)}
         notificationsEnabled={notificationsEnabled}
         onRequestNotificationPermission={handleRequestNotificationPermission}
+        theme={theme}
+        onToggleTheme={handleToggleTheme}
       />
 
       {/* 主工作區 */}
-      <main className="flex-1 max-w-xl mx-auto w-full px-4 py-4 space-y-4">
+      <main className="flex-1 max-w-xl mx-auto w-full px-3 py-3 space-y-3">
         {/* 快捷篩選標籤列 */}
         <div className="flex items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-1.5 p-1 bg-neutral-950 border border-neutral-900 rounded-xl">
+          <div
+            className={`flex items-center gap-1.5 p-1 rounded-xl border ${
+              isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-neutral-950 border-neutral-900'
+            }`}
+          >
             <button
               onClick={() => setFilterMode('all')}
               className={`px-3 py-1 rounded-lg font-medium transition-colors ${
                 filterMode === 'all'
-                  ? 'bg-neutral-800 text-white shadow-sm'
+                  ? isLight
+                    ? 'bg-slate-800 text-white shadow-sm'
+                    : 'bg-neutral-800 text-white shadow-sm'
+                  : isLight
+                  ? 'text-slate-500 hover:text-slate-900'
                   : 'text-neutral-400 hover:text-neutral-200'
               }`}
             >
@@ -258,7 +299,11 @@ export const App: React.FC = () => {
               onClick={() => setFilterMode('active')}
               className={`px-3 py-1 rounded-lg font-medium transition-colors flex items-center gap-1 ${
                 filterMode === 'active'
-                  ? 'bg-amber-950/60 text-amber-300 border border-amber-800/60'
+                  ? isLight
+                    ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                    : 'bg-amber-950/60 text-amber-300 border border-amber-800/60'
+                  : isLight
+                  ? 'text-slate-500 hover:text-slate-900'
                   : 'text-neutral-400 hover:text-neutral-200'
               }`}
             >
@@ -269,7 +314,11 @@ export const App: React.FC = () => {
               onClick={() => setFilterMode('ready')}
               className={`px-3 py-1 rounded-lg font-medium transition-colors flex items-center gap-1 ${
                 filterMode === 'ready'
-                  ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-800/60'
+                  ? isLight
+                    ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                    : 'bg-emerald-950/60 text-emerald-300 border border-emerald-800/60'
+                  : isLight
+                  ? 'text-slate-500 hover:text-slate-900'
                   : 'text-neutral-400 hover:text-neutral-200'
               }`}
             >
@@ -283,7 +332,11 @@ export const App: React.FC = () => {
               setEditingSpot(null);
               setIsNewModalOpen(true);
             }}
-            className="flex items-center gap-1 text-xs text-neutral-400 hover:text-emerald-400 transition-colors py-1 px-2"
+            className={`flex items-center gap-1 text-xs py-1 px-2.5 rounded-lg border font-semibold transition-colors shadow-sm ${
+              isLight
+                ? 'bg-white border-slate-200 text-emerald-700 hover:bg-emerald-50'
+                : 'bg-neutral-950 border-neutral-800 text-emerald-400 hover:bg-neutral-900'
+            }`}
           >
             <Plus size={14} />
             <span>加點位</span>
@@ -292,7 +345,7 @@ export const App: React.FC = () => {
 
         {/* 蘑菇卡片清單 */}
         {filteredSpots.length > 0 ? (
-          <div className="space-y-3">
+          <div className="space-y-2.5">
             {filteredSpots.map((spot) => (
               <MushroomCard
                 key={spot.id}
@@ -304,26 +357,37 @@ export const App: React.FC = () => {
                   setEditingSpot(s);
                   setIsNewModalOpen(true);
                 }}
+                theme={theme}
               />
             ))}
           </div>
         ) : (
-          <div className="py-16 text-center border border-dashed border-neutral-900 rounded-2xl p-6 bg-neutral-950/40">
+          <div
+            className={`py-14 text-center border border-dashed rounded-2xl p-6 ${
+              isLight
+                ? 'bg-white border-slate-300 text-slate-800 shadow-sm'
+                : 'bg-neutral-950/40 border-neutral-900 text-neutral-300'
+            }`}
+          >
             <div className="text-3xl mb-2">🍄</div>
-            <div className="text-sm font-bold text-neutral-300">目前尚無符合條件的蘑菇點位</div>
-            <p className="text-xs text-neutral-500 mt-1 max-w-xs mx-auto">
+            <div className="text-sm font-bold">目前尚無符合條件的蘑菇點位</div>
+            <p className={`text-xs mt-1 max-w-xs mx-auto ${isLight ? 'text-slate-500' : 'text-neutral-500'}`}>
               點擊右上角「新增」建立專屬蘑菇點位，或載入示範資料進行體驗。
             </p>
             <div className="mt-4 flex items-center justify-center gap-2">
               <button
                 onClick={handleLoadDemoData}
-                className="px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-neutral-300 rounded-xl text-xs font-semibold border border-neutral-800 transition-colors"
+                className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-colors ${
+                  isLight
+                    ? 'bg-slate-100 hover:bg-slate-200 border-slate-300 text-slate-700'
+                    : 'bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border-neutral-800'
+                }`}
               >
                 載入示範資料
               </button>
               <button
                 onClick={() => setIsNewModalOpen(true)}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-black rounded-xl text-xs font-bold transition-colors"
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-colors shadow-sm"
               >
                 新增第一個點位
               </button>
@@ -333,11 +397,13 @@ export const App: React.FC = () => {
       </main>
 
       {/* 底部資訊列 */}
-      <footer className="border-t border-neutral-900 px-4 py-4 text-center text-[11px] text-neutral-600 space-y-1">
-        <div>
-          皮克敏蘑菇出現時間紀錄器 · 支援 iOS / Android PWA · 純黑 OLED 省電設計
-        </div>
-        <div className="flex items-center justify-center gap-3 text-neutral-500">
+      <footer
+        className={`border-t px-4 py-3 text-center text-[11px] space-y-1 transition-colors ${
+          isLight ? 'border-slate-200 bg-white text-slate-500' : 'border-neutral-900 bg-black text-neutral-600'
+        }`}
+      >
+        <div>皮克敏蘑菇時間紀錄器 · 支援 iOS / Android PWA · OLED 純黑與明亮雙主題</div>
+        <div className="flex items-center justify-center gap-3">
           <button onClick={() => setIsGuideOpen(true)} className="hover:underline">
             使用說明書
           </button>
@@ -353,7 +419,7 @@ export const App: React.FC = () => {
                 saveSpots([]);
               }
             }}
-            className="hover:text-red-400 hover:underline"
+            className="hover:text-red-500 hover:underline"
           >
             清空資料
           </button>
@@ -369,6 +435,7 @@ export const App: React.FC = () => {
         }}
         onSave={handleSaveSpot}
         editingSpot={editingSpot}
+        theme={theme}
       />
 
       <OledHudModal
@@ -382,6 +449,7 @@ export const App: React.FC = () => {
         isOpen={isGuideOpen}
         onClose={() => setIsGuideOpen(false)}
         onLoadDemoData={handleLoadDemoData}
+        theme={theme}
       />
     </div>
   );

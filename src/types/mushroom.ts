@@ -46,4 +46,5 @@ export interface UserSettings {
   notificationsEnabled: boolean;
   oledHudMode: boolean;
   autoCooldownMinutes: number; // 預設 15 分鐘
+  theme: 'oled' | 'light'; // 主題模式
 }
