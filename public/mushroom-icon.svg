@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <radialGradient id="capGrad" cx="50%" cy="35%" r="50%">
+      <stop offset="0%" stop-color="#ef4444" />
+      <stop offset="100%" stop-color="#991b1b" />
+    </radialGradient>
+    <radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#22c55e" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- Background Glow -->
+  <circle cx="50" cy="50" r="46" fill="url(#glowGrad)" />
+  
+  <!-- Mushroom Stem -->
+  <path d="M40 52 C38 72, 36 82, 50 82 C64 82, 62 72, 60 52 Z" fill="#f8fafc" stroke="#e2e8f0" stroke-width="2" />
+  
+  <!-- Stem Shadow / Eyes -->
+  <ellipse cx="46" cy="65" rx="2" ry="3.5" fill="#334155" />
+  <ellipse cx="54" cy="65" rx="2" ry="3.5" fill="#334155" />
+  
+  <!-- Mushroom Cap -->
+  <path d="M15 54 C15 26, 85 26, 85 54 C75 58, 25 58, 15 54 Z" fill="url(#capGrad)" stroke="#ef4444" stroke-width="1.5" />
+  
+  <!-- Cap Spots -->
+  <circle cx="34" cy="40" r="6" fill="#ffffff" opacity="0.95" />
+  <circle cx="66" cy="40" r="6" fill="#ffffff" opacity="0.95" />
+  <circle cx="50" cy="32" r="7" fill="#ffffff" opacity="0.95" />
+  <circle cx="23" cy="50" r="3.5" fill="#ffffff" opacity="0.85" />
+  <circle cx="77" cy="50" r="3.5" fill="#ffffff" opacity="0.85" />
+</svg>

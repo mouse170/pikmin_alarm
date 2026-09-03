@@ -1,0 +1,389 @@
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { MushroomSpot, DailyQuota, UserSettings } from './types/mushroom';
+import {
+  loadSpots,
+  saveSpots,
+  loadDailyQuota,
+  saveDailyQuota,
+  loadSettings,
+  saveSettings,
+  INITIAL_DEMO_SPOTS,
+} from './utils/storage';
+import { playAlertChime, triggerVibration } from './utils/audio';
+import { Header } from './components/Header';
+import { MushroomCard } from './components/MushroomCard';
+import { MushroomModal } from './components/MushroomModal';
+import { OledHudModal } from './components/OledHudModal';
+import { GuideModal } from './components/GuideModal';
+import { Plus, CheckCircle, Clock } from 'lucide-react';
+
+export const App: React.FC = () => {
+  const [spots, setSpots] = useState<MushroomSpot[]>([]);
+  const [quota, setQuota] = useState<DailyQuota>({ remaining: 3, lastResetDate: '' });
+  const [settings] = useState<UserSettings>(loadSettings());
+  const [currentTime, setCurrentTime] = useState<number>(Date.now());
+
+  // 彈窗狀態
+  const [isNewModalOpen, setIsNewModalOpen] = useState(false);
+  const [editingSpot, setEditingSpot] = useState<MushroomSpot | null>(null);
+  const [isOledHudOpen, setIsOledHudOpen] = useState(false);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [filterMode, setFilterMode] = useState<'all' | 'active' | 'ready'>('all');
+
+  // 通知權限狀態
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+
+  // 用於追蹤哪些蘑菇已在當前週期觸發過到期通知，避免重複播放音效
+  const alertedSpotIdsRef = useRef<Set<string>>(new Set());
+
+  // 初次載入
+  useEffect(() => {
+    const loadedSpots = loadSpots();
+    if (loadedSpots.length === 0) {
+      setSpots(INITIAL_DEMO_SPOTS);
+      saveSpots(INITIAL_DEMO_SPOTS);
+    } else {
+      setSpots(loadedSpots);
+    }
+
+    setQuota(loadDailyQuota());
+
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setNotificationsEnabled(Notification.permission === 'granted');
+    }
+  }, []);
+
+  // 當 spots 異動時自動存檔
+  useEffect(() => {
+    if (spots.length > 0) {
+      saveSpots(spots);
+    }
+  }, [spots]);
+
+  // 當 quota 異動時存檔
+  useEffect(() => {
+    if (quota.lastResetDate) {
+      saveDailyQuota(quota);
+    }
+  }, [quota]);
+
+  // 當 settings 異動時存檔
+  useEffect(() => {
+    saveSettings(settings);
+  }, [settings]);
+
+  // 請求推播通知權限
+  const handleRequestNotificationPermission = async () => {
+    if (typeof window === 'undefined' || !('Notification' in window)) {
+      alert('您的瀏覽器不支援 Web Notification API。建議加入主畫面使用或使用行事曆匯出提醒。');
+      return;
+    }
+
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission === 'granted') {
+        setNotificationsEnabled(true);
+        new Notification('皮克敏蘑菇追蹤器', {
+          body: '通知權限已啟用！當蘑菇重生或戰鬥結束時，將即時發出提醒。',
+          icon: './mushroom-icon.svg',
+        });
+      } else {
+        setNotificationsEnabled(false);
+      }
+    } catch (err) {
+      console.warn('請求通知權限異常：', err);
+    }
+  };
+
+  // 定時鐘（每秒更新）與觸發到期提醒檢驗
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = Date.now();
+      setCurrentTime(now);
+
+      // 檢查是否有蘑菇剛剛到期
+      setSpots((prevSpots) => {
+        let hasChanges = false;
+        const nextSpots = prevSpots.map((spot) => {
+          let isFinished = false;
+
+          if (spot.status === 'cooldown' && spot.cooldownEndTime && now >= spot.cooldownEndTime) {
+            isFinished = true;
+          } else if (spot.status === 'battling' && spot.battleEndTime && now >= spot.battleEndTime) {
+            isFinished = true;
+          }
+
+          if (isFinished) {
+            // 若尚未觸發此點位的提醒
+            if (!alertedSpotIdsRef.current.has(spot.id)) {
+              alertedSpotIdsRef.current.add(spot.id);
+
+              // 播放和弦提示音與振動
+              if (settings.soundEnabled) playAlertChime();
+              if (settings.vibrationEnabled) triggerVibration();
+
+              // 推送瀏覽器通知
+              if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+                try {
+                  new Notification(`🍄 蘑菇已出現：${spot.name}`, {
+                    body: `${spot.name} 15 分鐘重生冷卻完畢，可立即登入派兵討伐！`,
+                    icon: './mushroom-icon.svg',
+                    tag: `mushroom-${spot.id}`,
+                  });
+                } catch (e) {
+                  console.error(e);
+                }
+              }
+            }
+
+            hasChanges = true;
+            return {
+              ...spot,
+              status: 'ready' as const,
+              cooldownEndTime: null,
+              battleEndTime: null,
+              updatedAt: now,
+            };
+          }
+
+          return spot;
+        });
+
+        return hasChanges ? nextSpots : prevSpots;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [settings.soundEnabled, settings.vibrationEnabled]);
+
+  // 額度增減
+  const handleUpdateQuota = (delta: number) => {
+    setQuota((prev) => ({
+      ...prev,
+      remaining: Math.max(0, Math.min(3, prev.remaining + delta)),
+    }));
+  };
+
+  // 儲存單一點位
+  const handleSaveSpot = (spotData: Partial<MushroomSpot>) => {
+    if (editingSpot) {
+      // 編輯
+      setSpots((prev) =>
+        prev.map((s) => (s.id === editingSpot.id ? { ...s, ...spotData, updatedAt: Date.now() } : s))
+      );
+      setEditingSpot(null);
+    } else {
+      // 新增
+      const newSpot: MushroomSpot = {
+        id: `spot-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        name: spotData.name || '未命名蘑菇',
+        color: spotData.color || 'red',
+        size: spotData.size || 'normal',
+        notes: spotData.notes || '',
+        status: 'idle',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+      setSpots((prev) => [newSpot, ...prev]);
+    }
+  };
+
+  // 更新卡片狀態
+  const handleUpdateSpot = useCallback((updated: MushroomSpot) => {
+    // 若重設或重新計時，自已警示列表中解除註冊
+    alertedSpotIdsRef.current.delete(updated.id);
+    setSpots((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
+  }, []);
+
+  // 刪除點位
+  const handleDeleteSpot = (id: string) => {
+    alertedSpotIdsRef.current.delete(id);
+    setSpots((prev) => prev.filter((s) => s.id !== id));
+  };
+
+  // 載入示範資料
+  const handleLoadDemoData = () => {
+    alertedSpotIdsRef.current.clear();
+    setSpots(INITIAL_DEMO_SPOTS);
+    saveSpots(INITIAL_DEMO_SPOTS);
+  };
+
+  // 篩選與排序
+  const filteredSpots = spots.filter((s) => {
+    if (filterMode === 'active') {
+      return s.status === 'cooldown' || s.status === 'battling';
+    }
+    if (filterMode === 'ready') {
+      return s.status === 'ready';
+    }
+    return true;
+  });
+
+  // 統計數據
+  const readyCount = spots.filter((s) => s.status === 'ready').length;
+  const activeCount = spots.filter((s) => s.status === 'cooldown' || s.status === 'battling').length;
+
+  return (
+    <div className="min-h-screen bg-black text-neutral-100 flex flex-col selection:bg-neutral-800">
+      {/* 頂部導航列與額度條 */}
+      <Header
+        quota={quota}
+        onUpdateQuota={handleUpdateQuota}
+        onOpenNewModal={() => {
+          setEditingSpot(null);
+          setIsNewModalOpen(true);
+        }}
+        onOpenOledHud={() => setIsOledHudOpen(true)}
+        onOpenGuide={() => setIsGuideOpen(true)}
+        notificationsEnabled={notificationsEnabled}
+        onRequestNotificationPermission={handleRequestNotificationPermission}
+      />
+
+      {/* 主工作區 */}
+      <main className="flex-1 max-w-xl mx-auto w-full px-4 py-4 space-y-4">
+        {/* 快捷篩選標籤列 */}
+        <div className="flex items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-1.5 p-1 bg-neutral-950 border border-neutral-900 rounded-xl">
+            <button
+              onClick={() => setFilterMode('all')}
+              className={`px-3 py-1 rounded-lg font-medium transition-colors ${
+                filterMode === 'all'
+                  ? 'bg-neutral-800 text-white shadow-sm'
+                  : 'text-neutral-400 hover:text-neutral-200'
+              }`}
+            >
+              全部 ({spots.length})
+            </button>
+            <button
+              onClick={() => setFilterMode('active')}
+              className={`px-3 py-1 rounded-lg font-medium transition-colors flex items-center gap-1 ${
+                filterMode === 'active'
+                  ? 'bg-amber-950/60 text-amber-300 border border-amber-800/60'
+                  : 'text-neutral-400 hover:text-neutral-200'
+              }`}
+            >
+              <Clock size={12} />
+              <span>計時中 ({activeCount})</span>
+            </button>
+            <button
+              onClick={() => setFilterMode('ready')}
+              className={`px-3 py-1 rounded-lg font-medium transition-colors flex items-center gap-1 ${
+                filterMode === 'ready'
+                  ? 'bg-emerald-950/60 text-emerald-300 border border-emerald-800/60'
+                  : 'text-neutral-400 hover:text-neutral-200'
+              }`}
+            >
+              <CheckCircle size={12} />
+              <span>已出現 ({readyCount})</span>
+            </button>
+          </div>
+
+          <button
+            onClick={() => {
+              setEditingSpot(null);
+              setIsNewModalOpen(true);
+            }}
+            className="flex items-center gap-1 text-xs text-neutral-400 hover:text-emerald-400 transition-colors py-1 px-2"
+          >
+            <Plus size={14} />
+            <span>加點位</span>
+          </button>
+        </div>
+
+        {/* 蘑菇卡片清單 */}
+        {filteredSpots.length > 0 ? (
+          <div className="space-y-3">
+            {filteredSpots.map((spot) => (
+              <MushroomCard
+                key={spot.id}
+                spot={spot}
+                currentTime={currentTime}
+                onUpdateSpot={handleUpdateSpot}
+                onDeleteSpot={handleDeleteSpot}
+                onEditSpot={(s) => {
+                  setEditingSpot(s);
+                  setIsNewModalOpen(true);
+                }}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="py-16 text-center border border-dashed border-neutral-900 rounded-2xl p-6 bg-neutral-950/40">
+            <div className="text-3xl mb-2">🍄</div>
+            <div className="text-sm font-bold text-neutral-300">目前尚無符合條件的蘑菇點位</div>
+            <p className="text-xs text-neutral-500 mt-1 max-w-xs mx-auto">
+              點擊右上角「新增」建立專屬蘑菇點位，或載入示範資料進行體驗。
+            </p>
+            <div className="mt-4 flex items-center justify-center gap-2">
+              <button
+                onClick={handleLoadDemoData}
+                className="px-4 py-2 bg-neutral-900 hover:bg-neutral-800 text-neutral-300 rounded-xl text-xs font-semibold border border-neutral-800 transition-colors"
+              >
+                載入示範資料
+              </button>
+              <button
+                onClick={() => setIsNewModalOpen(true)}
+                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-black rounded-xl text-xs font-bold transition-colors"
+              >
+                新增第一個點位
+              </button>
+            </div>
+          </div>
+        )}
+      </main>
+
+      {/* 底部資訊列 */}
+      <footer className="border-t border-neutral-900 px-4 py-4 text-center text-[11px] text-neutral-600 space-y-1">
+        <div>
+          皮克敏蘑菇出現時間紀錄器 · 支援 iOS / Android PWA · 純黑 OLED 省電設計
+        </div>
+        <div className="flex items-center justify-center gap-3 text-neutral-500">
+          <button onClick={() => setIsGuideOpen(true)} className="hover:underline">
+            使用說明書
+          </button>
+          <span>·</span>
+          <button onClick={handleLoadDemoData} className="hover:underline">
+            重置示範資料
+          </button>
+          <span>·</span>
+          <button
+            onClick={() => {
+              if (confirm('確定清空所有點位與自訂資料嗎？')) {
+                setSpots([]);
+                saveSpots([]);
+              }
+            }}
+            className="hover:text-red-400 hover:underline"
+          >
+            清空資料
+          </button>
+        </div>
+      </footer>
+
+      {/* 彈窗模組群 */}
+      <MushroomModal
+        isOpen={isNewModalOpen}
+        onClose={() => {
+          setIsNewModalOpen(false);
+          setEditingSpot(null);
+        }}
+        onSave={handleSaveSpot}
+        editingSpot={editingSpot}
+      />
+
+      <OledHudModal
+        isOpen={isOledHudOpen}
+        onClose={() => setIsOledHudOpen(false)}
+        spots={spots}
+        currentTime={currentTime}
+      />
+
+      <GuideModal
+        isOpen={isGuideOpen}
+        onClose={() => setIsGuideOpen(false)}
+        onLoadDemoData={handleLoadDemoData}
+      />
+    </div>
+  );
+};
+export default App;
