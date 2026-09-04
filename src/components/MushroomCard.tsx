@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { MushroomSpot } from '../types/mushroom';
-import { Clock, Calendar, CheckCircle2, Swords, RefreshCw, MoreVertical, Trash2, Edit2, AlertCircle } from 'lucide-react';
-import { exportMushroomToCalendar } from '../utils/ics';
+import { Clock, CheckCircle2, Swords, RefreshCw, MoreVertical, Trash2, Edit2, AlertCircle, Zap, HelpCircle } from 'lucide-react';
 import { getMushroomMeta } from '../utils/mushroomData';
+import { isIOS, triggerIOSShortcutTimer } from '../utils/device';
 
 interface MushroomCardProps {
   spot: MushroomSpot;
@@ -10,6 +10,7 @@ interface MushroomCardProps {
   onUpdateSpot: (updated: MushroomSpot) => void;
   onDeleteSpot: (id: string) => void;
   onEditSpot: (spot: MushroomSpot) => void;
+  onOpenShortcutHelp?: () => void;
   theme?: 'oled' | 'light';
 }
 
@@ -19,6 +20,7 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
   onUpdateSpot,
   onDeleteSpot,
   onEditSpot,
+  onOpenShortcutHelp,
   theme = 'oled',
 }) => {
   const [showMenu, setShowMenu] = useState(false);
@@ -27,6 +29,7 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
 
   const isLight = theme === 'light';
   const meta = getMushroomMeta(spot.typeId);
+  const isAppleDevice = isIOS();
 
   // 計算冷卻剩餘時間（毫秒），預設冷卻為 5 分鐘
   let remainingMs = 0;
@@ -110,17 +113,10 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
     });
   };
 
-  // 一鍵匯出行事曆
-  const handleCalendarExport = () => {
-    const targetMs = isCooldown ? spot.cooldownEndTime : spot.battleEndTime;
-    if (!targetMs) return;
-
-    exportMushroomToCalendar({
-      title: `${spot.name} (${meta.name})`,
-      notes: `${meta.dispatchRule ? `【派遣限制】：${meta.dispatchRule}\n` : ''}${spot.notes || ''}`,
-      targetTimeMs: targetMs,
-      advanceMinutes: 2, // 提前 2 分鐘（在 1~3 分鐘區間）響鈴
-    });
+  // 喚醒 iOS 原生捷徑計時器
+  const handleTriggerShortcut = () => {
+    const remainingMinutes = Math.ceil(remainingMs / 60000);
+    triggerIOSShortcutTimer(remainingMinutes || 5);
   };
 
   return (
@@ -151,7 +147,7 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 flex-wrap mb-1">
-            {/* 分類大標籤 */}
+            {/* 分類標籤 */}
             <span
               className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
                 meta.category === 'color'
@@ -164,7 +160,7 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
               {meta.categoryName}
             </span>
 
-            {/* 具體顏色/屬性標籤 */}
+            {/* 具體名稱標籤 */}
             <span
               className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${meta.badgeBg} ${meta.badgeText} ${meta.badgeBorder}`}
             >
@@ -323,18 +319,33 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
               >
                 {formatRemaining(remainingMs)}
               </span>
-              <button
-                onClick={handleCalendarExport}
-                className={`flex items-center gap-1 text-[11px] px-2 py-1 rounded border transition-colors ${
-                  isLight
-                    ? 'bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100'
-                    : 'bg-indigo-950/30 text-indigo-400 hover:text-indigo-300 border-indigo-900/50'
-                }`}
-                title="加入手機系統行事曆（含提前 2 分鐘鬧鐘）"
-              >
-                <Calendar size={12} />
-                <span>行事曆提醒 (提早2分)</span>
-              </button>
+
+              {/* 僅在 iOS 設備顯示「iOS 捷徑計時」按鈕 */}
+              {isAppleDevice && (
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={handleTriggerShortcut}
+                    className={`flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-lg font-semibold border transition-colors shadow-sm ${
+                      isLight
+                        ? 'bg-amber-100 hover:bg-amber-200 border-amber-300 text-amber-900'
+                        : 'bg-amber-950/40 hover:bg-amber-900/60 text-amber-300 border-amber-800/60'
+                    }`}
+                    title="呼叫 iOS 捷徑開始原生時鐘倒數"
+                  >
+                    <Zap size={12} className="text-amber-500" />
+                    <span>捷徑計時</span>
+                  </button>
+                  {onOpenShortcutHelp && (
+                    <button
+                      onClick={onOpenShortcutHelp}
+                      className="p-1 text-neutral-500 hover:text-amber-400 transition-colors"
+                      title="查看 iOS 捷徑設定教學"
+                    >
+                      <HelpCircle size={13} />
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
             {/* 倒數進度條 */}
             <div
@@ -368,18 +379,20 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
                 {formatRemaining(remainingMs)}
               </span>
               <div className="flex items-center gap-1.5">
-                <button
-                  onClick={handleCalendarExport}
-                  className={`flex items-center gap-1 text-[11px] px-2 py-1 rounded border transition-colors ${
-                    isLight
-                      ? 'bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100'
-                      : 'bg-indigo-950/30 text-indigo-400 hover:text-indigo-300 border-indigo-900/50'
-                  }`}
-                  title="加入系統行事曆"
-                >
-                  <Calendar size={12} />
-                  <span>提醒</span>
-                </button>
+                {isAppleDevice && (
+                  <button
+                    onClick={handleTriggerShortcut}
+                    className={`flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-lg font-semibold border transition-colors shadow-sm ${
+                      isLight
+                        ? 'bg-indigo-50 hover:bg-indigo-100 border-indigo-200 text-indigo-900'
+                        : 'bg-indigo-950/40 hover:bg-indigo-900/60 text-indigo-300 border-indigo-800/60'
+                    }`}
+                    title="呼叫 iOS 捷徑開始原生時鐘倒數"
+                  >
+                    <Zap size={12} className="text-indigo-400" />
+                    <span>捷徑計時</span>
+                  </button>
+                )}
                 <button
                   onClick={() => handleStartCooldown(5)}
                   className={`px-2 py-1 rounded text-[11px] border transition-colors ${

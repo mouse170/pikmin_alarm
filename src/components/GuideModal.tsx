@@ -1,5 +1,6 @@
-import React from 'react';
-import { X, BookOpen, Clock, Zap, PlayCircle, Smartphone, AlertTriangle, Calendar, Award } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, BookOpen, Clock, Zap, PlayCircle, Smartphone, AlertTriangle, Calendar, Award, Monitor, Apple } from 'lucide-react';
+import { getDeviceType, triggerIOSShortcutTimer } from '../utils/device';
 
 interface GuideModalProps {
   isOpen: boolean;
@@ -14,6 +15,8 @@ export const GuideModal: React.FC<GuideModalProps> = ({
   onLoadDemoData,
   theme = 'oled',
 }) => {
+  const [platformTab, setPlatformTab] = useState<'ios' | 'android' | 'desktop'>(getDeviceType());
+
   if (!isOpen) return null;
 
   const isLight = theme === 'light';
@@ -21,7 +24,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
       <div
-        className={`w-full max-w-xl rounded-2xl border shadow-2xl overflow-hidden flex flex-col max-h-[92vh] transition-colors ${
+        className={`w-full max-w-2xl rounded-2xl border shadow-2xl overflow-hidden flex flex-col max-h-[92vh] transition-colors ${
           isLight ? 'bg-white border-slate-200 text-slate-800' : 'bg-oled-card border-neutral-800 text-neutral-300'
         }`}
       >
@@ -34,7 +37,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
           <div className="flex items-center gap-2">
             <BookOpen size={18} className={isLight ? 'text-emerald-600' : 'text-emerald-400'} />
             <h2 className={`text-base font-bold ${isLight ? 'text-slate-900' : 'text-neutral-100'}`}>
-              皮克敏蘑菇機制全解析與使用指南
+              皮克敏蘑菇追蹤器使用指南與平台設定
             </h2>
           </div>
           <button
@@ -49,7 +52,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
 
         {/* 說明書內容 */}
         <div className="p-5 overflow-y-auto space-y-6 text-xs leading-relaxed">
-          {/* 一鍵體驗示範 */}
+          {/* 示範資料載入卡片 */}
           <div
             className={`p-4 rounded-xl border flex items-center justify-between gap-3 ${
               isLight
@@ -81,181 +84,219 @@ export const GuideModal: React.FC<GuideModalProps> = ({
             </button>
           </div>
 
-          {/* 第一章：蘑菇三大體系完整說明 */}
-          <section className="space-y-2.5">
-            <h3
-              className={`text-sm font-bold flex items-center gap-2 border-l-2 border-emerald-500 pl-2 ${
-                isLight ? 'text-slate-900' : 'text-white'
-              }`}
-            >
-              <Award size={15} className={isLight ? 'text-emerald-600' : 'text-emerald-400'} />
-              <span>一、 皮克敏三大蘑菇體系與派遣規則</span>
-            </h3>
-
-            <div className="space-y-2.5 pl-3">
-              {/* 1. 顏色菇 */}
-              <div
-                className={`p-3 rounded-xl border space-y-1 ${
-                  isLight ? 'bg-slate-50 border-slate-200 text-slate-700' : 'bg-black border-neutral-900 text-neutral-400'
+          {/* 第一章：各作業系統專屬指引（iOS / Android / 電腦版 切換） */}
+          <section className="space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <h3
+                className={`text-sm font-bold flex items-center gap-2 border-l-2 border-emerald-500 pl-2 ${
+                  isLight ? 'text-slate-900' : 'text-white'
                 }`}
               >
-                <div className={`font-semibold ${isLight ? 'text-slate-900' : 'text-neutral-200'}`}>
-                  1. 顏色菇（基礎色菇）
-                </div>
-                <p>
-                  <strong>種類包含</strong>：紅色、黃色、藍色、紫色、白色、粉紅（羽翼）、灰色（岩石）、冰藍色。
-                </p>
-                <p>
-                  <strong>規則</strong>：任何顏色的皮克敏皆可出戰，但派出與蘑菇<strong>相同顏色</strong>或裝飾皮克敏將享有強大的攻擊力加成，加快擊破速度。
-                </p>
-              </div>
+                <Smartphone size={15} className={isLight ? 'text-emerald-600' : 'text-emerald-400'} />
+                <span>平台最佳化與後台提醒教學</span>
+              </h3>
 
-              {/* 2. 元素菇 */}
-              <div
-                className={`p-3 rounded-xl border space-y-1.5 ${
-                  isLight ? 'bg-slate-50 border-slate-200 text-slate-700' : 'bg-black border-neutral-900 text-neutral-400'
-                }`}
-              >
-                <div className={`font-semibold text-amber-500 flex items-center gap-1`}>
-                  <AlertTriangle size={13} />
-                  <span>2. 元素菇（屬性菇）—— 具備限定派遣限制</span>
-                </div>
-                <ul className="list-disc list-inside space-y-1 pl-1">
-                  <li><strong>火蘑菇</strong>：僅限派出<strong>紅皮克敏</strong>出戰。</li>
-                  <li><strong>水蘑菇</strong>：僅限派出<strong>藍皮克敏</strong>出戰。</li>
-                  <li><strong>電蘑菇</strong>：僅限派出<strong>黃皮克敏</strong>出戰。</li>
-                  <li><strong>毒蘑菇</strong>：僅限派出<strong>白皮克敏</strong>出戰。</li>
-                  <li><strong>水晶蘑菇</strong>：僅限派出<strong>岩石皮克敏</strong>出戰。</li>
-                </ul>
-                <p className="text-[11px] text-neutral-500 pt-0.5">
-                  其餘顏色之皮克敏無法進入元素蘑菇，請務必提早培養各單屬性隊伍戰力！
-                </p>
-              </div>
-
-              {/* 3. 活動菇與巨型活動菇 */}
-              <div
-                className={`p-3 rounded-xl border space-y-1.5 ${
-                  isLight ? 'bg-slate-50 border-slate-200 text-slate-700' : 'bg-black border-neutral-900 text-neutral-400'
-                }`}
-              >
-                <div className={`font-semibold text-fuchsia-400 flex items-center gap-1`}>
-                  <Calendar size={13} />
-                  <span>3. 活動菇與巨型活動菇（週期時間限定）</span>
-                </div>
-                <p>
-                  <strong>當月活動菇</strong>：配合當月主題活動全天候出現，挑戰成功可取得當月專屬特別精華與活動道具。
-                </p>
-                <p>
-                  <strong>巨型活動菇</strong>：<strong>週末限定登場（每週六、日）</strong>，血量龐大、可容納參與人數上限高，通關後掉落的果實、精華與獎勵道具量為全遊戲最豐富。本應用在週末會自動標示高亮提醒！
-                </p>
+              {/* 平台切換按鈕頁籤 */}
+              <div className="flex items-center gap-1 p-1 rounded-xl border bg-black/40">
+                <button
+                  onClick={() => setPlatformTab('ios')}
+                  className={`flex items-center gap-1 px-3 py-1 rounded-lg font-semibold transition-all ${
+                    platformTab === 'ios'
+                      ? 'bg-amber-500 text-black shadow-sm'
+                      : isLight
+                      ? 'text-slate-600 hover:text-black'
+                      : 'text-neutral-400 hover:text-white'
+                  }`}
+                >
+                  <Apple size={13} />
+                  <span>iOS (iPhone)</span>
+                </button>
+                <button
+                  onClick={() => setPlatformTab('android')}
+                  className={`flex items-center gap-1 px-3 py-1 rounded-lg font-semibold transition-all ${
+                    platformTab === 'android'
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : isLight
+                      ? 'text-slate-600 hover:text-black'
+                      : 'text-neutral-400 hover:text-white'
+                  }`}
+                >
+                  <Smartphone size={13} />
+                  <span>Android</span>
+                </button>
+                <button
+                  onClick={() => setPlatformTab('desktop')}
+                  className={`flex items-center gap-1 px-3 py-1 rounded-lg font-semibold transition-all ${
+                    platformTab === 'desktop'
+                      ? 'bg-indigo-600 text-white shadow-sm'
+                      : isLight
+                      ? 'text-slate-600 hover:text-black'
+                      : 'text-neutral-400 hover:text-white'
+                  }`}
+                >
+                  <Monitor size={13} />
+                  <span>電腦版 (Desktop)</span>
+                </button>
               </div>
             </div>
+
+            {/* iOS 專屬說明 */}
+            {platformTab === 'ios' && (
+              <div
+                className={`p-4 rounded-xl border space-y-3 ${
+                  isLight ? 'bg-amber-50/60 border-amber-200 text-slate-700' : 'bg-amber-950/20 border-amber-500/30 text-neutral-300'
+                }`}
+              >
+                <div className="flex items-center gap-2 text-amber-500 font-bold text-sm">
+                  <Zap size={16} />
+                  <span>iOS 設備必讀：使用原生「捷徑計時」突破鎖屏休眠限制</span>
+                </div>
+                <p className="text-[11px]">
+                  iOS 系統在手機電源鍵鎖定螢幕後，會凍結網頁計時器。為確保您在鎖屏時仍能收到聲音提醒，本應用為 iOS 設備專門打造了<strong>「捷徑原生時鐘連動」</strong>功能！
+                </p>
+
+                <div className={`p-3 rounded-lg border space-y-2 ${isLight ? 'bg-white border-amber-200' : 'bg-black border-amber-900/60'}`}>
+                  <div className="font-bold text-xs text-amber-400">建立「皮克敏計時器」捷徑步驟（只需 1 分鐘）：</div>
+                  <ol className="list-decimal list-inside space-y-1.5 text-[11px]">
+                    <li>打開 iPhone 內建<strong>「捷徑」App</strong>，點選右上角「+」。</li>
+                    <li>將捷徑名稱改為：<strong>皮克敏計時器</strong>。</li>
+                    <li>新增動作：搜尋<strong>「開始計時」</strong>（時鐘）。</li>
+                    <li>將時間設定為<strong>「捷徑輸入」</strong>，單位設為<strong>「分鐘」</strong>。</li>
+                    <li>按完成儲存。之後在網頁卡片點擊<strong>「捷徑計時」</strong>即可直接自動設定時鐘鬧鐘！</li>
+                  </ol>
+                  <button
+                    onClick={() => triggerIOSShortcutTimer(5)}
+                    className="mt-2 w-full py-1.5 px-3 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-lg transition-colors flex items-center justify-center gap-1"
+                  >
+                    <Zap size={13} />
+                    <span>測試執行捷徑（倒數 5 分鐘）</span>
+                  </button>
+                </div>
+
+                <div className="text-[11px] pt-1">
+                  <strong>PWA 安裝</strong>：使用 Safari 瀏覽器打開本網頁 → 點擊底部「分享」圖示 → 選擇「加入主畫面」，即可享有全螢幕獨立 App 體驗。
+                </div>
+              </div>
+            )}
+
+            {/* Android 專屬說明 */}
+            {platformTab === 'android' && (
+              <div
+                className={`p-4 rounded-xl border space-y-3 ${
+                  isLight ? 'bg-emerald-50/60 border-emerald-200 text-slate-700' : 'bg-emerald-950/20 border-emerald-500/30 text-neutral-300'
+                }`}
+              >
+                <div className="flex items-center gap-2 text-emerald-500 font-bold text-sm">
+                  <Smartphone size={16} />
+                  <span>Android 設備：PWA 安裝與後台推播最佳化</span>
+                </div>
+                <div className="space-y-2 text-[11px]">
+                  <p>
+                    <strong>1. 安裝為應用程式</strong>：在 Chrome 瀏覽器打開本網頁，點擊右上角三點選單，選擇「安裝應用程式」或「新增至主螢幕」。
+                  </p>
+                  <p>
+                    <strong>2. 啟用通知權限</strong>：首次進入請點擊頂部鈴鐺圖示允許通知。系統將於重生前 1~3 分鐘提早發出推播，並於 0 分鐘準時發出完成提醒。
+                  </p>
+                  <p>
+                    <strong>3. 電池最佳化設定</strong>：若想確保背景通知不被系統延遲，建議至手機「設定」→「應用程式」→「蘑菇紀錄器」→ 將電池改為「不受限制」。
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* 電腦版 (Desktop) 專屬說明 */}
+            {platformTab === 'desktop' && (
+              <div
+                className={`p-4 rounded-xl border space-y-3 ${
+                  isLight ? 'bg-indigo-50/60 border-indigo-200 text-slate-700' : 'bg-indigo-950/20 border-indigo-500/30 text-neutral-300'
+                }`}
+              >
+                <div className="flex items-center gap-2 text-indigo-400 font-bold text-sm">
+                  <Monitor size={16} />
+                  <span>電腦版直覺 UI：多欄位並排監控</span>
+                </div>
+                <div className="space-y-2 text-[11px]">
+                  <p>
+                    <strong>1. 多欄位網格介面（Responsive Multi-Column）</strong>：電腦版介面自動依螢幕寬度切換為雙欄或三欄並排佈局，讓您可以同時監控數十個據點的重生時間，無須頻繁上下滑動。
+                  </p>
+                  <p>
+                    <strong>2. 桌面推播與背景和弦音</strong>：只要將本網頁分頁保持開啟在背景，時間到達時瀏覽器即會發出提示音與桌面通知橫幅。
+                  </p>
+                  <p>
+                    <strong>3. 數據自動儲存</strong>：所有點位與自訂紀錄皆即時同步於瀏覽器本機快顯中，關閉分頁後重新開啟資料依然完整。
+                  </p>
+                </div>
+              </div>
+            )}
           </section>
 
-          {/* 第二章：5 分鐘重生與 1~3 分鐘提前提醒機制 */}
+          {/* 第二章：蘑菇三大體系完整說明 */}
           <section className="space-y-2.5">
             <h3
               className={`text-sm font-bold flex items-center gap-2 border-l-2 border-indigo-500 pl-2 ${
                 isLight ? 'text-slate-900' : 'text-white'
               }`}
             >
-              <Clock size={15} className={isLight ? 'text-indigo-600' : 'text-indigo-400'} />
-              <span>二、 5 分鐘重生週期與 1~3 分鐘提前提醒</span>
+              <Award size={15} className={isLight ? 'text-indigo-600' : 'text-indigo-400'} />
+              <span>二、 皮克敏三大蘑菇體系與派遣規則</span>
             </h3>
 
-            <div className="space-y-2.5 pl-3">
-              <div
-                className={`p-3.5 rounded-xl border ${
-                  isLight ? 'bg-slate-50 border-slate-200 text-slate-700' : 'bg-black border-neutral-900 text-neutral-400'
-                }`}
-              >
-                <div className={`font-semibold mb-1 ${isLight ? 'text-slate-900' : 'text-neutral-200'}`}>
-                  1. 蘑菇被打掉後 5 分鐘迅速重生
-                </div>
-                <p>
-                  當某一據點的蘑菇被擊破後，該位置進入冷卻期，通常在<strong>擊破後的 5 分鐘內</strong>重生出新蘑菇。點擊卡片上的「剛打完 (5分)」即可啟動 5 分鐘精確倒數。
+            <div className="space-y-2 pl-3">
+              {/* 顏色菇 */}
+              <div className={`p-3 rounded-xl border space-y-1 ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-black border-neutral-900'}`}>
+                <div className="font-semibold text-neutral-200">1. 顏色菇（基礎色菇）</div>
+                <p className="text-neutral-400">
+                  包含紅色、黃色、藍色、紫色、白色、粉紅、灰色（岩石）、冰藍色。所有皮克敏皆可出戰，派同色享有攻擊力加成。
                 </p>
               </div>
 
-              <div
-                className={`p-3.5 rounded-xl border ${
-                  isLight ? 'bg-slate-50 border-slate-200 text-slate-700' : 'bg-black border-neutral-900 text-neutral-400'
-                }`}
-              >
-                <div className={`font-semibold mb-1 ${isLight ? 'text-slate-900' : 'text-neutral-200'}`}>
-                  2. 接近 1~3 分鐘執行提前預警
+              {/* 元素菇 */}
+              <div className={`p-3 rounded-xl border space-y-1 ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-black border-neutral-900'}`}>
+                <div className="font-semibold text-amber-500 flex items-center gap-1">
+                  <AlertTriangle size={13} />
+                  <span>2. 元素菇（屬性菇）—— 嚴格限定派遣</span>
                 </div>
-                <p>
-                  為了防止玩家因開啟遊戲讀取延誤而錯過搶位，本應用在倒數<strong>進入剩餘 1~3 分鐘（預設 2 分鐘）</strong>時，會自動觸發柔和預警提示、卡片琥珀色閃爍與通知，提醒您提早打開皮克敏 Bloom 畫面就位等待。
-                </p>
+                <ul className="list-disc list-inside space-y-0.5 text-neutral-400 pl-1">
+                  <li><strong>火蘑菇</strong>：僅限派出紅皮克敏。</li>
+                  <li><strong>水蘑菇</strong>：僅限派出藍皮克敏。</li>
+                  <li><strong>電蘑菇</strong>：僅限派出黃皮克敏。</li>
+                  <li><strong>毒蘑菇</strong>：僅限派出白皮克敏。</li>
+                  <li><strong>水晶蘑菇</strong>：僅限派出岩石皮克敏。</li>
+                </ul>
               </div>
 
-              <div
-                className={`p-3.5 rounded-xl border ${
-                  isLight ? 'bg-slate-50 border-slate-200 text-slate-700' : 'bg-black border-neutral-900 text-neutral-400'
-                }`}
-              >
-                <div className={`font-semibold mb-1 ${isLight ? 'text-slate-900' : 'text-neutral-200'}`}>
-                  3. 每日免費 3 次額度跨日 00:00 自動重置
+              {/* 活動菇 */}
+              <div className={`p-3 rounded-xl border space-y-1 ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-black border-neutral-900'}`}>
+                <div className="font-semibold text-fuchsia-400 flex items-center gap-1">
+                  <Calendar size={13} />
+                  <span>3. 活動菇與巨型活動菇（週期限定）</span>
                 </div>
-                <p>
-                  玩家每天享有 3 次免費挑戰額度。本應用會在手機系統時間跨過午夜 00:00 時，自動將剩餘次數恢復為 3 次，無須手動重開。
+                <p className="text-neutral-400">
+                  當月活動菇提供活動專屬精華與特別道具；<strong>巨型活動菇為每週六、日週末限定登場</strong>，血量龐大、參與人數多且獎勵最豐富。
                 </p>
               </div>
             </div>
           </section>
 
-          {/* 第三章：操作情境示範 */}
+          {/* 第三章：5 分鐘週期與提前提醒 */}
           <section className="space-y-2.5">
             <h3
               className={`text-sm font-bold flex items-center gap-2 border-l-2 border-amber-500 pl-2 ${
                 isLight ? 'text-slate-900' : 'text-white'
               }`}
             >
-              <Zap size={15} className={isLight ? 'text-amber-600' : 'text-amber-400'} />
-              <span>三、 實戰操作情境流程</span>
+              <Clock size={15} className={isLight ? 'text-amber-600' : 'text-amber-400'} />
+              <span>三、 5 分鐘重生週期與提前 1~3 分鐘提醒</span>
             </h3>
-
             <div className="space-y-2 pl-3">
-              <div
-                className={`p-3 rounded-xl border ${
-                  isLight ? 'bg-slate-50 border-slate-200 text-slate-700' : 'bg-black border-neutral-900 text-neutral-400'
-                }`}
-              >
-                <div className={`font-semibold mb-1 ${isLight ? 'text-slate-900' : 'text-neutral-200'}`}>
-                  情境：打完公園剛重生的火蘑菇
-                </div>
-                <ol className="list-decimal list-inside space-y-1">
-                  <li>新增點位選擇「元素菇」-「火蘑菇」，可點擊「隨機生成名稱」快速輸入地標。</li>
-                  <li>擊破後點擊「剛打完 (5分)」。</li>
-                  <li>剩餘 2 分鐘時，收到提前預警通知，提醒您準備藍皮克敏或專屬陣容。</li>
-                  <li>倒數歸零時，鈴聲響起、卡片變綠「已重生出現」，立即派兵奪得先機。</li>
-                </ol>
+              <div className={`p-3 rounded-xl border space-y-1 ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-black border-neutral-900'}`}>
+                <p className="text-neutral-400">
+                  蘑菇被打掉後通常於 <strong>5 分鐘</strong>內重生。系統在進入剩餘 <strong>1~3 分鐘（預設 2 分鐘）</strong>時，會觸發琥珀色微光閃爍、預警和弦音與通知，讓您有充裕時間開啟遊戲畫面搶占名額！
+                </p>
+                <p className="text-neutral-400 pt-1">
+                  每日 3 次免費挑戰額度於<strong>每日午夜 00:00</strong> 自動跨日重置。
+                </p>
               </div>
-            </div>
-          </section>
-
-          {/* 第四章：PWA 加入主畫面教學 */}
-          <section className="space-y-2.5">
-            <h3
-              className={`text-sm font-bold flex items-center gap-2 border-l-2 border-rose-500 pl-2 ${
-                isLight ? 'text-slate-900' : 'text-white'
-              }`}
-            >
-              <Smartphone size={15} className={isLight ? 'text-rose-600' : 'text-rose-400'} />
-              <span>四、 手機「加入主畫面」PWA 安裝</span>
-            </h3>
-            <div
-              className={`p-3 rounded-xl border space-y-1.5 pl-3 ${
-                isLight ? 'bg-slate-50 border-slate-200 text-slate-700' : 'bg-black border-neutral-900 text-neutral-400'
-              }`}
-            >
-              <p>
-                <strong>iOS Safari</strong>：點擊分享按鈕 → 選擇「加入主畫面」。
-              </p>
-              <p>
-                <strong>Android Chrome</strong>：點擊右上角三點選單 → 選擇「安裝應用程式」或「新增至主畫面」。
-              </p>
             </div>
           </section>
         </div>

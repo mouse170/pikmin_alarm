@@ -16,7 +16,8 @@ import { MushroomCard } from './components/MushroomCard';
 import { MushroomModal } from './components/MushroomModal';
 import { OledHudModal } from './components/OledHudModal';
 import { GuideModal } from './components/GuideModal';
-import { Plus, CheckCircle, Clock } from 'lucide-react';
+import { ShortcutModal } from './components/ShortcutModal';
+import { Plus, CheckCircle, Clock, Monitor, ShieldCheck } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [spots, setSpots] = useState<MushroomSpot[]>([]);
@@ -30,6 +31,7 @@ export const App: React.FC = () => {
   const [editingSpot, setEditingSpot] = useState<MushroomSpot | null>(null);
   const [isOledHudOpen, setIsOledHudOpen] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const [isShortcutModalOpen, setIsShortcutModalOpen] = useState(false);
   const [filterMode, setFilterMode] = useState<'all' | 'active' | 'ready'>('all');
 
   // 通知權限狀態
@@ -106,7 +108,7 @@ export const App: React.FC = () => {
   // 請求推播通知權限
   const handleRequestNotificationPermission = async () => {
     if (typeof window === 'undefined' || !('Notification' in window)) {
-      alert('您的瀏覽器不支援 Web Notification API。建議加入主畫面使用或使用行事曆匯出提醒。');
+      alert('您的瀏覽器不支援 Web Notification API。');
       return;
     }
 
@@ -154,16 +156,14 @@ export const App: React.FC = () => {
 
           const diffMs = targetEndTime - now;
 
-          // 1. 檢查是否進入提前 1~3 分鐘預警區間（diffMs <= advanceWarningMs 且 diffMs > 0）
+          // 1. 檢查是否進入提前 1~3 分鐘預警區間
           if (diffMs <= advanceWarningMs && diffMs > 0) {
             if (!advanceAlertedSpotIdsRef.current.has(spot.id)) {
               advanceAlertedSpotIdsRef.current.add(spot.id);
 
-              // 溫和預警音效與震動
               if (settings.soundEnabled) playAlertChime();
               if (settings.vibrationEnabled) triggerVibration([150, 100, 150]);
 
-              // 提早通知推播
               if (
                 typeof window !== 'undefined' &&
                 'Notification' in window &&
@@ -183,7 +183,7 @@ export const App: React.FC = () => {
             }
           }
 
-          // 2. 檢查是否正式到期（diffMs <= 0）
+          // 2. 檢查是否正式到期
           if (diffMs <= 0) {
             if (!finalAlertedSpotIdsRef.current.has(spot.id)) {
               finalAlertedSpotIdsRef.current.add(spot.id);
@@ -198,7 +198,7 @@ export const App: React.FC = () => {
               ) {
                 try {
                   new Notification(`🍄 蘑菇已出現：${spot.name}`, {
-                    body: `${spot.name} 重生完畢！可立即登入皮克敏 Bloom 派兵討伐！`,
+                    body: `${spot.name} 5 分鐘重生完畢！可立即登入派兵討伐！`,
                     icon: './mushroom-icon.svg',
                     tag: `mushroom-ready-${spot.id}`,
                   });
@@ -228,7 +228,7 @@ export const App: React.FC = () => {
     return () => clearInterval(timer);
   }, [settings.soundEnabled, settings.vibrationEnabled, settings.advanceWarningMinutes]);
 
-  // 當應用程式返回前景時，立即確認跨日重置
+  // 前景返回時立即檢查跨日
   useEffect(() => {
     const handleFocusOrVisible = () => {
       if (document.visibilityState === 'visible') {
@@ -254,13 +254,11 @@ export const App: React.FC = () => {
   // 儲存單一點位
   const handleSaveSpot = (spotData: Partial<MushroomSpot>) => {
     if (editingSpot) {
-      // 編輯
       setSpots((prev) =>
         prev.map((s) => (s.id === editingSpot.id ? { ...s, ...spotData, updatedAt: Date.now() } : s))
       );
       setEditingSpot(null);
     } else {
-      // 新增
       const newSpot: MushroomSpot = {
         id: `spot-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
         name: spotData.name || '未命名蘑菇',
@@ -276,7 +274,7 @@ export const App: React.FC = () => {
     }
   };
 
-  // 更新卡片狀態（重置通知標記）
+  // 更新卡片狀態
   const handleUpdateSpot = useCallback((updated: MushroomSpot) => {
     finalAlertedSpotIdsRef.current.delete(updated.id);
     advanceAlertedSpotIdsRef.current.delete(updated.id);
@@ -335,10 +333,36 @@ export const App: React.FC = () => {
         onToggleTheme={handleToggleTheme}
       />
 
-      {/* 主工作區 */}
-      <main className="flex-1 max-w-xl mx-auto w-full px-3 py-3 space-y-3">
-        {/* 快捷篩選標籤列 */}
-        <div className="flex items-center justify-between gap-2 text-xs">
+      {/* 主工作區（適應手機與電腦版寬螢幕） */}
+      <main className="flex-1 max-w-6xl mx-auto w-full px-4 py-4 space-y-4">
+        {/* 電腦版寬螢幕專屬狀態列（在 md 螢幕以上顯示） */}
+        <div
+          className={`hidden md:flex items-center justify-between p-3.5 rounded-2xl border text-xs shadow-sm ${
+            isLight ? 'bg-white border-slate-200' : 'bg-neutral-950 border-neutral-900'
+          }`}
+        >
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <Monitor size={16} className={isLight ? 'text-indigo-600' : 'text-indigo-400'} />
+              <span className="font-bold text-sm">電腦版儀表板視圖</span>
+            </div>
+            <div className="flex items-center gap-4 text-neutral-400">
+              <span>總點位：<strong className={isLight ? 'text-slate-800' : 'text-white'}>{spots.length}</strong></span>
+              <span>進行中倒數：<strong className="text-amber-500">{activeCount}</strong></span>
+              <span>已重生可打：<strong className="text-emerald-500">{readyCount}</strong></span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-neutral-500 flex items-center gap-1">
+              <ShieldCheck size={13} className="text-emerald-500" />
+              <span>5分鐘冷卻 · 提前2分預警</span>
+            </span>
+          </div>
+        </div>
+
+        {/* 快捷篩選標籤列與操作按鈕 */}
+        <div className="flex items-center justify-between gap-2 text-xs flex-wrap">
           <div
             className={`flex items-center gap-1.5 p-1 rounded-xl border ${
               isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-neutral-950 border-neutral-900'
@@ -346,7 +370,7 @@ export const App: React.FC = () => {
           >
             <button
               onClick={() => setFilterMode('all')}
-              className={`px-3 py-1 rounded-lg font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${
                 filterMode === 'all'
                   ? isLight
                     ? 'bg-slate-800 text-white shadow-sm'
@@ -360,7 +384,7 @@ export const App: React.FC = () => {
             </button>
             <button
               onClick={() => setFilterMode('active')}
-              className={`px-3 py-1 rounded-lg font-medium transition-colors flex items-center gap-1 ${
+              className={`px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1 ${
                 filterMode === 'active'
                   ? isLight
                     ? 'bg-amber-100 text-amber-900 border border-amber-300'
@@ -370,12 +394,12 @@ export const App: React.FC = () => {
                   : 'text-neutral-400 hover:text-neutral-200'
               }`}
             >
-              <Clock size={12} />
+              <Clock size={13} />
               <span>計時中 ({activeCount})</span>
             </button>
             <button
               onClick={() => setFilterMode('ready')}
-              className={`px-3 py-1 rounded-lg font-medium transition-colors flex items-center gap-1 ${
+              className={`px-3 py-1.5 rounded-lg font-medium transition-colors flex items-center gap-1 ${
                 filterMode === 'ready'
                   ? isLight
                     ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
@@ -385,30 +409,32 @@ export const App: React.FC = () => {
                   : 'text-neutral-400 hover:text-neutral-200'
               }`}
             >
-              <CheckCircle size={12} />
+              <CheckCircle size={13} />
               <span>已出現 ({readyCount})</span>
             </button>
           </div>
 
-          <button
-            onClick={() => {
-              setEditingSpot(null);
-              setIsNewModalOpen(true);
-            }}
-            className={`flex items-center gap-1 text-xs py-1 px-2.5 rounded-lg border font-semibold transition-colors shadow-sm ${
-              isLight
-                ? 'bg-white border-slate-200 text-emerald-700 hover:bg-emerald-50'
-                : 'bg-neutral-950 border-neutral-800 text-emerald-400 hover:bg-neutral-900'
-            }`}
-          >
-            <Plus size={14} />
-            <span>加點位</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setEditingSpot(null);
+                setIsNewModalOpen(true);
+              }}
+              className={`flex items-center gap-1.5 text-xs py-1.5 px-3 rounded-xl border font-bold transition-colors shadow-sm ${
+                isLight
+                  ? 'bg-emerald-600 hover:bg-emerald-500 text-white border-emerald-600'
+                  : 'bg-emerald-600 hover:bg-emerald-500 text-black border-emerald-500'
+              }`}
+            >
+              <Plus size={15} strokeWidth={2.5} />
+              <span>新增點位</span>
+            </button>
+          </div>
         </div>
 
-        {/* 蘑菇卡片清單 */}
+        {/* 蘑菇卡片清單（電腦版自動變為 2 欄或 3 欄並排網格佈局） */}
         {filteredSpots.length > 0 ? (
-          <div className="space-y-2.5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
             {filteredSpots.map((spot) => (
               <MushroomCard
                 key={spot.id}
@@ -420,13 +446,14 @@ export const App: React.FC = () => {
                   setEditingSpot(s);
                   setIsNewModalOpen(true);
                 }}
+                onOpenShortcutHelp={() => setIsShortcutModalOpen(true)}
                 theme={theme}
               />
             ))}
           </div>
         ) : (
           <div
-            className={`py-14 text-center border border-dashed rounded-2xl p-6 ${
+            className={`py-16 text-center border border-dashed rounded-2xl p-6 ${
               isLight
                 ? 'bg-white border-slate-300 text-slate-800 shadow-sm'
                 : 'bg-neutral-950/40 border-neutral-900 text-neutral-300'
@@ -435,7 +462,7 @@ export const App: React.FC = () => {
             <div className="text-3xl mb-2">🍄</div>
             <div className="text-sm font-bold">目前尚無符合條件的蘑菇點位</div>
             <p className={`text-xs mt-1 max-w-xs mx-auto ${isLight ? 'text-slate-500' : 'text-neutral-500'}`}>
-              點擊右上角「新增」建立專屬蘑菇點位，或載入示範資料進行體驗。
+              點擊右上角「新增點位」建立專屬蘑菇點位，或載入示範資料進行體驗。
             </p>
             <div className="mt-4 flex items-center justify-center gap-2">
               <button
@@ -461,14 +488,24 @@ export const App: React.FC = () => {
 
       {/* 底部資訊列 */}
       <footer
-        className={`border-t px-4 py-3 text-center text-[11px] space-y-1 transition-colors ${
+        className={`border-t px-4 py-3.5 text-center text-[11px] space-y-1 transition-colors ${
           isLight ? 'border-slate-200 bg-white text-slate-500' : 'border-neutral-900 bg-black text-neutral-600'
         }`}
       >
-        <div>皮克敏蘑菇時間紀錄器 · 5 分鐘重生冷卻 · 提前 1~3 分鐘預警 · 三大分類派遣</div>
-        <div className="flex items-center justify-center gap-3">
+        <div className="flex items-center justify-center gap-2 flex-wrap">
+          <span>皮克敏蘑菇時間紀錄器</span>
+          <span>·</span>
+          <span>5 分鐘極速重生</span>
+          <span>·</span>
+          <span>提前 1~3 分鐘預警</span>
+          <span>·</span>
+          <span>三大蘑菇體系管理</span>
+          <span>·</span>
+          <span>iOS 捷徑計時支援</span>
+        </div>
+        <div className="flex items-center justify-center gap-3 pt-1">
           <button onClick={() => setIsGuideOpen(true)} className="hover:underline">
-            使用說明書
+            使用指南與平台設定
           </button>
           <span>·</span>
           <button onClick={handleLoadDemoData} className="hover:underline">
@@ -512,6 +549,12 @@ export const App: React.FC = () => {
         isOpen={isGuideOpen}
         onClose={() => setIsGuideOpen(false)}
         onLoadDemoData={handleLoadDemoData}
+        theme={theme}
+      />
+
+      <ShortcutModal
+        isOpen={isShortcutModalOpen}
+        onClose={() => setIsShortcutModalOpen(false)}
         theme={theme}
       />
     </div>
