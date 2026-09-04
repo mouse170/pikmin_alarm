@@ -1,12 +1,13 @@
 import { MushroomSpot, DailyQuota, UserSettings } from '../types/mushroom';
+import { isWeekend } from './mushroomData';
 
 const STORAGE_KEYS = {
-  SPOTS: 'pikmin_mushroom_spots_v1',
-  QUOTA: 'pikmin_daily_quota_v1',
-  SETTINGS: 'pikmin_user_settings_v1',
+  SPOTS: 'pikmin_mushroom_spots_v2',
+  QUOTA: 'pikmin_daily_quota_v2',
+  SETTINGS: 'pikmin_user_settings_v2',
 };
 
-function getTodayString(): string {
+export function getTodayString(): string {
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -17,36 +18,41 @@ function getTodayString(): string {
 export const INITIAL_DEMO_SPOTS: MushroomSpot[] = [
   {
     id: 'demo-1',
-    name: '大安森林公園中央池',
-    color: 'red',
+    name: '大安森林公園音樂台',
+    category: 'color',
+    typeId: 'red',
     size: 'large',
-    notes: '常規出紅、粉色蘑菇，打完約 15 分鐘重生',
+    notes: '常規出紅、粉色蘑菇，打完 5 分鐘後重生',
     status: 'cooldown',
-    cooldownEndTime: Date.now() + 8 * 60 * 1000 + 30 * 1000, // 剩餘 8 分半
+    cooldownEndTime: Date.now() + 2 * 60 * 1000 + 30 * 1000, // 剩餘 2 分半（進入 1~3 分鐘提前警示區）
     createdAt: Date.now() - 100000,
-    updatedAt: Date.now()
+    updatedAt: Date.now(),
   },
   {
     id: 'demo-2',
     name: '台北車站南門廣場',
-    color: 'purple',
+    category: 'element',
+    typeId: 'fire',
     size: 'giant',
-    notes: '正在進攻中，隊友支援中',
+    notes: '烈火蘑菇：僅限派出紅皮克敏進攻',
     status: 'battling',
-    battleEndTime: Date.now() + 24 * 60 * 1000, // 剩餘 24 分鐘結束
+    battleEndTime: Date.now() + 20 * 60 * 1000,
     createdAt: Date.now() - 200000,
-    updatedAt: Date.now()
+    updatedAt: Date.now(),
   },
   {
     id: 'demo-3',
-    name: '公司大樓前裝置藝術',
-    color: 'mystery',
+    name: '捷運站出口噴水池',
+    category: 'event',
+    typeId: isWeekend() ? 'event_giant' : 'event_normal',
     size: 'normal',
-    notes: '活動限定神秘蘑菇，隨時可發起進攻',
+    notes: isWeekend()
+      ? '週末限定巨型活動菇：獎勵豐富、血量多'
+      : '當月主題活動菇：提供活動專屬精華與道具',
     status: 'ready',
     createdAt: Date.now() - 300000,
-    updatedAt: Date.now()
-  }
+    updatedAt: Date.now(),
+  },
 ];
 
 export const DEFAULT_SETTINGS: UserSettings = {
@@ -54,7 +60,8 @@ export const DEFAULT_SETTINGS: UserSettings = {
   vibrationEnabled: true,
   notificationsEnabled: true,
   oledHudMode: false,
-  autoCooldownMinutes: 15,
+  autoCooldownMinutes: 5, // 修正：蘑菇被打掉重生時間為 5 分鐘
+  advanceWarningMinutes: 2, // 修正：接近 1~3 分鐘（預設 2 分鐘）提前執行提醒
   theme: 'oled',
 };
 
@@ -94,7 +101,7 @@ export function loadDailyQuota(): DailyQuota {
   // 跨日自動重置為 3 次
   const initialQuota: DailyQuota = {
     remaining: 3,
-    lastResetDate: today
+    lastResetDate: today,
   };
   saveDailyQuota(initialQuota);
   return initialQuota;
@@ -106,6 +113,19 @@ export function saveDailyQuota(quota: DailyQuota): void {
   } catch (error) {
     console.error('儲存每日額度失敗：', error);
   }
+}
+
+export function checkAndResetDailyQuota(currentQuota: DailyQuota): DailyQuota {
+  const today = getTodayString();
+  if (currentQuota.lastResetDate !== today) {
+    const resetQuota: DailyQuota = {
+      remaining: 3,
+      lastResetDate: today,
+    };
+    saveDailyQuota(resetQuota);
+    return resetQuota;
+  }
+  return currentQuota;
 }
 
 export function loadSettings(): UserSettings {

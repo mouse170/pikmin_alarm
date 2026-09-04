@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, BookOpen, Clock, Zap, Shield, PlayCircle, Smartphone } from 'lucide-react';
+import { X, BookOpen, Clock, Zap, PlayCircle, Smartphone, AlertTriangle, Calendar, Award } from 'lucide-react';
 
 interface GuideModalProps {
   isOpen: boolean;
@@ -34,7 +34,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
           <div className="flex items-center gap-2">
             <BookOpen size={18} className={isLight ? 'text-emerald-600' : 'text-emerald-400'} />
             <h2 className={`text-base font-bold ${isLight ? 'text-slate-900' : 'text-neutral-100'}`}>
-              蘑菇機制全解析與使用指南
+              皮克敏蘑菇機制全解析與使用指南
             </h2>
           </div>
           <button
@@ -64,10 +64,10 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                 }`}
               >
                 <PlayCircle size={16} className={isLight ? 'text-emerald-600' : 'text-emerald-400'} />
-                <span>初次使用？一鍵載入示範資料</span>
+                <span>初次使用？一鍵載入示範點位</span>
               </div>
               <p className={`text-[11px] mt-1 ${isLight ? 'text-emerald-700' : 'text-neutral-400'}`}>
-                立即載入公園、捷運站與公司示範蘑菇點位，親自體驗倒數計時與提醒效果。
+                立即載入包含顏色菇、元素菇與活動菇的完整示範資料，體驗 5 分鐘倒數與提前提醒。
               </p>
             </div>
             <button
@@ -81,67 +81,86 @@ export const GuideModal: React.FC<GuideModalProps> = ({
             </button>
           </div>
 
-          {/* 第一章：皮克敏蘑菇出現頻率與規則 */}
+          {/* 第一章：蘑菇三大體系完整說明 */}
           <section className="space-y-2.5">
             <h3
               className={`text-sm font-bold flex items-center gap-2 border-l-2 border-emerald-500 pl-2 ${
                 isLight ? 'text-slate-900' : 'text-white'
               }`}
             >
-              <Clock size={15} className={isLight ? 'text-emerald-600' : 'text-emerald-400'} />
-              <span>一、 皮克敏蘑菇出現頻率與核心規則</span>
+              <Award size={15} className={isLight ? 'text-emerald-600' : 'text-emerald-400'} />
+              <span>一、 皮克敏三大蘑菇體系與派遣規則</span>
             </h3>
-            <div className="space-y-2 pl-3">
+
+            <div className="space-y-2.5 pl-3">
+              {/* 1. 顏色菇 */}
               <div
-                className={`p-3 rounded-xl border space-y-1.5 ${
+                className={`p-3 rounded-xl border space-y-1 ${
                   isLight ? 'bg-slate-50 border-slate-200 text-slate-700' : 'bg-black border-neutral-900 text-neutral-400'
                 }`}
               >
                 <div className={`font-semibold ${isLight ? 'text-slate-900' : 'text-neutral-200'}`}>
-                  1. 蘑菇重生週期（約 15 分鐘）
+                  1. 顏色菇（基礎色菇）
                 </div>
                 <p>
-                  當某一地點的蘑菇被玩家擊破後，該點位會進入隱藏冷卻期，通常在<strong>擊破後的 15 分鐘內</strong>重生出一朵全新的蘑菇（顏色與尺寸隨機）。利用本工具的「剛打完（15分）」功能，即可在第一時間掌握新蘑菇降臨時刻。
+                  <strong>種類包含</strong>：紅色、黃色、藍色、紫色、白色、粉紅（羽翼）、灰色（岩石）、冰藍色。
+                </p>
+                <p>
+                  <strong>規則</strong>：任何顏色的皮克敏皆可出戰，但派出與蘑菇<strong>相同顏色</strong>或裝飾皮克敏將享有強大的攻擊力加成，加快擊破速度。
                 </p>
               </div>
 
+              {/* 2. 元素菇 */}
               <div
                 className={`p-3 rounded-xl border space-y-1.5 ${
                   isLight ? 'bg-slate-50 border-slate-200 text-slate-700' : 'bg-black border-neutral-900 text-neutral-400'
                 }`}
               >
-                <div className={`font-semibold ${isLight ? 'text-slate-900' : 'text-neutral-200'}`}>
-                  2. 每日免費挑戰額度（每日 3 次）
+                <div className={`font-semibold text-amber-500 flex items-center gap-1`}>
+                  <AlertTriangle size={13} />
+                  <span>2. 元素菇（屬性菇）—— 具備限定派遣限制</span>
                 </div>
-                <p>
-                  每位玩家每日擁有 3 次免費討伐蘑菇額度，並於<strong>每日午夜 00:00（當地時間）</strong>全面重置。若使用蘑菇儲值券挑戰，則不佔用此 3 次免費次數。本工具頂部提供免費次數計數器，支援跨日自動重置。
+                <ul className="list-disc list-inside space-y-1 pl-1">
+                  <li><strong>火蘑菇</strong>：僅限派出<strong>紅皮克敏</strong>出戰。</li>
+                  <li><strong>水蘑菇</strong>：僅限派出<strong>藍皮克敏</strong>出戰。</li>
+                  <li><strong>電蘑菇</strong>：僅限派出<strong>黃皮克敏</strong>出戰。</li>
+                  <li><strong>毒蘑菇</strong>：僅限派出<strong>白皮克敏</strong>出戰。</li>
+                  <li><strong>水晶蘑菇</strong>：僅限派出<strong>岩石皮克敏</strong>出戰。</li>
+                </ul>
+                <p className="text-[11px] text-neutral-500 pt-0.5">
+                  其餘顏色之皮克敏無法進入元素蘑菇，請務必提早培養各單屬性隊伍戰力！
                 </p>
               </div>
 
+              {/* 3. 活動菇與巨型活動菇 */}
               <div
                 className={`p-3 rounded-xl border space-y-1.5 ${
                   isLight ? 'bg-slate-50 border-slate-200 text-slate-700' : 'bg-black border-neutral-900 text-neutral-400'
                 }`}
               >
-                <div className={`font-semibold ${isLight ? 'text-slate-900' : 'text-neutral-200'}`}>
-                  3. 蘑菇種類與星級評價
+                <div className={`font-semibold text-fuchsia-400 flex items-center gap-1`}>
+                  <Calendar size={13} />
+                  <span>3. 活動菇與巨型活動菇（週期時間限定）</span>
                 </div>
                 <p>
-                  蘑菇分為常規顏色（紅、黃、藍、紫、白、羽翼、岩石）、特殊屬性（火、水、電、毒）以及活動限定（神秘蘑菇、巨大活動蘑菇）。派入同色或剋屬皮克敏可享有攻擊力加成，加快擊破時間。
+                  <strong>當月活動菇</strong>：配合當月主題活動全天候出現，挑戰成功可取得當月專屬特別精華與活動道具。
+                </p>
+                <p>
+                  <strong>巨型活動菇</strong>：<strong>週末限定登場（每週六、日）</strong>，血量龐大、可容納參與人數上限高，通關後掉落的果實、精華與獎勵道具量為全遊戲最豐富。本應用在週末會自動標示高亮提醒！
                 </p>
               </div>
             </div>
           </section>
 
-          {/* 第二章：本工具使用步驟範例 */}
+          {/* 第二章：5 分鐘重生與 1~3 分鐘提前提醒機制 */}
           <section className="space-y-2.5">
             <h3
               className={`text-sm font-bold flex items-center gap-2 border-l-2 border-indigo-500 pl-2 ${
                 isLight ? 'text-slate-900' : 'text-white'
               }`}
             >
-              <Zap size={15} className={isLight ? 'text-indigo-600' : 'text-indigo-400'} />
-              <span>二、 實戰操作情境範例</span>
+              <Clock size={15} className={isLight ? 'text-indigo-600' : 'text-indigo-400'} />
+              <span>二、 5 分鐘重生週期與 1~3 分鐘提前提醒</span>
             </h3>
 
             <div className="space-y-2.5 pl-3">
@@ -151,16 +170,11 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                 }`}
               >
                 <div className={`font-semibold mb-1 ${isLight ? 'text-slate-900' : 'text-neutral-200'}`}>
-                  情境 A：剛剛打完身旁的蘑菇
+                  1. 蘑菇被打掉後 5 分鐘迅速重生
                 </div>
-                <ol className="list-decimal list-inside space-y-1">
-                  <li>在卡片上點擊「剛打完 (15分)」。</li>
-                  <li>系統立即啟動 15 分鐘倒數計時。</li>
-                  <li>
-                    點擊「行事曆提醒」可直接將此倒數時間匯入手機內建行事曆（附帶準時通知鬧鐘）。
-                  </li>
-                  <li>時間到達時，頁面將發出提示和弦音、震動反饋並將卡片狀態變更為綠色「已重生出現」。</li>
-                </ol>
+                <p>
+                  當某一據點的蘑菇被擊破後，該位置進入冷卻期，通常在<strong>擊破後的 5 分鐘內</strong>重生出新蘑菇。點擊卡片上的「剛打完 (5分)」即可啟動 5 分鐘精確倒數。
+                </p>
               </div>
 
               <div
@@ -169,54 +183,59 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                 }`}
               >
                 <div className={`font-semibold mb-1 ${isLight ? 'text-slate-900' : 'text-neutral-200'}`}>
-                  情境 B：派隊進攻需 2 小時的大蘑菇
+                  2. 接近 1~3 分鐘執行提前預警
                 </div>
-                <ol className="list-decimal list-inside space-y-1">
-                  <li>在卡片上點擊「正在打 (自訂)」。</li>
-                  <li>選擇 2 小時（120 分鐘）或輸入精確戰鬥時間，點擊啟動。</li>
-                  <li>卡片即時顯示戰鬥剩餘時間，並標明預計結束鐘點。</li>
-                  <li>若隊友強攻提早打完，點擊「提早打完」即可無縫切換為 15 分鐘重生倒數。</li>
-                </ol>
+                <p>
+                  為了防止玩家因開啟遊戲讀取延誤而錯過搶位，本應用在倒數<strong>進入剩餘 1~3 分鐘（預設 2 分鐘）</strong>時，會自動觸發柔和預警提示、卡片琥珀色閃爍與通知，提醒您提早打開皮克敏 Bloom 畫面就位等待。
+                </p>
+              </div>
+
+              <div
+                className={`p-3.5 rounded-xl border ${
+                  isLight ? 'bg-slate-50 border-slate-200 text-slate-700' : 'bg-black border-neutral-900 text-neutral-400'
+                }`}
+              >
+                <div className={`font-semibold mb-1 ${isLight ? 'text-slate-900' : 'text-neutral-200'}`}>
+                  3. 每日免費 3 次額度跨日 00:00 自動重置
+                </div>
+                <p>
+                  玩家每天享有 3 次免費挑戰額度。本應用會在手機系統時間跨過午夜 00:00 時，自動將剩餘次數恢復為 3 次，無須手動重開。
+                </p>
               </div>
             </div>
           </section>
 
-          {/* 第三章：OLED 純黑省電與手機常亮使用技巧 */}
+          {/* 第三章：操作情境示範 */}
           <section className="space-y-2.5">
             <h3
               className={`text-sm font-bold flex items-center gap-2 border-l-2 border-amber-500 pl-2 ${
                 isLight ? 'text-slate-900' : 'text-white'
               }`}
             >
-              <Shield size={15} className={isLight ? 'text-amber-600' : 'text-amber-400'} />
-              <span>三、 OLED 省電模式與螢幕防護技巧</span>
+              <Zap size={15} className={isLight ? 'text-amber-600' : 'text-amber-400'} />
+              <span>三、 實戰操作情境流程</span>
             </h3>
-            <div
-              className={`p-3.5 rounded-xl border space-y-2 pl-3 ${
-                isLight ? 'bg-slate-50 border-slate-200 text-slate-700' : 'bg-black border-neutral-900 text-neutral-400'
-              }`}
-            >
-              <p>
-                現代智慧型手機（iPhone Pro 系列、多數 Android 機種）均配備 OLED 面板，純黑色（#000000）時像素點會完全斷電關閉，達到極致省電效果。
-              </p>
-              <ul className="list-disc list-inside space-y-1">
-                <li>
-                  <strong className={isLight ? 'text-slate-900' : 'text-neutral-200'}>
-                    微光常亮 HUD
-                  </strong>
-                  ：點擊頂部「HUD」按鈕，系統會調用 Screen Wake Lock API 保持螢幕不鎖屏，調降顯示亮度並在桌面上充當時鐘。
-                </li>
-                <li>
-                  <strong className={isLight ? 'text-slate-900' : 'text-neutral-200'}>
-                    防螢幕烙印（Pixel Shift）
-                  </strong>
-                  ：HUD 模式內建像素偏移防護，每 45 秒會自動在數像素範圍內微調位置，避免 OLED 像素老化。
-                </li>
-              </ul>
+
+            <div className="space-y-2 pl-3">
+              <div
+                className={`p-3 rounded-xl border ${
+                  isLight ? 'bg-slate-50 border-slate-200 text-slate-700' : 'bg-black border-neutral-900 text-neutral-400'
+                }`}
+              >
+                <div className={`font-semibold mb-1 ${isLight ? 'text-slate-900' : 'text-neutral-200'}`}>
+                  情境：打完公園剛重生的火蘑菇
+                </div>
+                <ol className="list-decimal list-inside space-y-1">
+                  <li>新增點位選擇「元素菇」-「火蘑菇」，可點擊「隨機生成名稱」快速輸入地標。</li>
+                  <li>擊破後點擊「剛打完 (5分)」。</li>
+                  <li>剩餘 2 分鐘時，收到提前預警通知，提醒您準備藍皮克敏或專屬陣容。</li>
+                  <li>倒數歸零時，鈴聲響起、卡片變綠「已重生出現」，立即派兵奪得先機。</li>
+                </ol>
+              </div>
             </div>
           </section>
 
-          {/* 第四章：iOS 與 Android 安裝至主畫面教學 */}
+          {/* 第四章：PWA 加入主畫面教學 */}
           <section className="space-y-2.5">
             <h3
               className={`text-sm font-bold flex items-center gap-2 border-l-2 border-rose-500 pl-2 ${
@@ -224,29 +243,19 @@ export const GuideModal: React.FC<GuideModalProps> = ({
               }`}
             >
               <Smartphone size={15} className={isLight ? 'text-rose-600' : 'text-rose-400'} />
-              <span>四、 手機「加入主畫面」PWA 安裝指南</span>
+              <span>四、 手機「加入主畫面」PWA 安裝</span>
             </h3>
             <div
-              className={`p-3.5 rounded-xl border space-y-2 pl-3 ${
+              className={`p-3 rounded-xl border space-y-1.5 pl-3 ${
                 isLight ? 'bg-slate-50 border-slate-200 text-slate-700' : 'bg-black border-neutral-900 text-neutral-400'
               }`}
             >
-              <div className="space-y-1">
-                <span className={`font-semibold ${isLight ? 'text-slate-900' : 'text-neutral-200'}`}>
-                  iOS (Safari)：
-                </span>
-                <p>
-                  點擊瀏覽器底部的「分享」按鈕，向下滾動並選擇<strong>「加入主畫面」</strong>。加入後即可全螢幕無邊框啟動，並享有穩定的本機推播通知支援。
-                </p>
-              </div>
-              <div className={`space-y-1 pt-1 border-t ${isLight ? 'border-slate-200' : 'border-neutral-900'}`}>
-                <span className={`font-semibold ${isLight ? 'text-slate-900' : 'text-neutral-200'}`}>
-                  Android (Chrome)：
-                </span>
-                <p>
-                  點擊瀏覽器右上角選單（三個點），選擇<strong>「安裝應用程式」</strong>或「新增至主螢幕」，即可享有原生 App 等級體驗。
-                </p>
-              </div>
+              <p>
+                <strong>iOS Safari</strong>：點擊分享按鈕 → 選擇「加入主畫面」。
+              </p>
+              <p>
+                <strong>Android Chrome</strong>：點擊右上角三點選單 → 選擇「安裝應用程式」或「新增至主畫面」。
+              </p>
             </div>
           </section>
         </div>

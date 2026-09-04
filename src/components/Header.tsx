@@ -1,6 +1,7 @@
 import React from 'react';
-import { Plus, Moon, Sun, BookOpen, Bell, BellOff } from 'lucide-react';
+import { Plus, Moon, Sun, BookOpen, Bell, BellOff, Sparkles } from 'lucide-react';
 import { DailyQuota } from '../types/mushroom';
+import { isWeekend } from '../utils/mushroomData';
 
 interface HeaderProps {
   quota: DailyQuota;
@@ -26,6 +27,7 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleTheme,
 }) => {
   const isLight = theme === 'light';
+  const weekendActive = isWeekend();
 
   return (
     <header
@@ -38,7 +40,7 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="max-w-xl mx-auto space-y-2">
         {/* 第一列：標題列與功能按鈕群 */}
         <div className="flex items-center justify-between gap-2">
-          {/* 左側 Logo 與標題（強制單行不換行） */}
+          {/* 左側 Logo 與標題 */}
           <div className="flex items-center gap-2 min-w-0 flex-shrink">
             <div
               className={`w-8 h-8 rounded-xl flex items-center justify-center text-lg flex-shrink-0 border shadow-inner ${
@@ -47,7 +49,7 @@ export const Header: React.FC<HeaderProps> = ({
             >
               🍄
             </div>
-            <div className="min-w-0 flex items-center gap-1.5">
+            <div className="min-w-0 flex items-center gap-1.5 flex-wrap">
               <h1 className="text-sm font-bold tracking-tight whitespace-nowrap truncate">
                 皮克敏蘑菇追蹤
               </h1>
@@ -60,10 +62,16 @@ export const Header: React.FC<HeaderProps> = ({
               >
                 {isLight ? '明亮' : 'OLED'}
               </span>
+              {weekendActive && (
+                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/40 flex items-center gap-0.5">
+                  <Sparkles size={10} />
+                  <span>週末巨型菇</span>
+                </span>
+              )}
             </div>
           </div>
 
-          {/* 右側按鈕群（水平橫向整齊排列） */}
+          {/* 右側按鈕群 */}
           <div className="flex items-center space-x-1.5 flex-shrink-0">
             {/* 主題切換按鈕 */}
             <button
@@ -82,7 +90,7 @@ export const Header: React.FC<HeaderProps> = ({
             {/* 通知權限按鈕 */}
             <button
               onClick={onRequestNotificationPermission}
-              title={notificationsEnabled ? '推播通知已啟用' : '點擊啟用通知'}
+              title={notificationsEnabled ? '推播通知已啟用（含 1~3 分鐘提前提醒）' : '點擊啟用通知'}
               className={`p-1.5 rounded-lg border transition-colors ${
                 notificationsEnabled
                   ? isLight
@@ -114,7 +122,7 @@ export const Header: React.FC<HeaderProps> = ({
             {/* 指南手冊按鈕 */}
             <button
               onClick={onOpenGuide}
-              title="查看說明與機制指南"
+              title="查看三大類蘑菇規則與使用說明"
               className={`p-1.5 rounded-lg border transition-colors ${
                 isLight
                   ? 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200'
@@ -137,7 +145,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* 第二列：今日額度控制條（優化排版，絕不折行） */}
+        {/* 第二列：今日額度控制條（含跨日自動重置標示） */}
         <div
           className={`flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl border text-xs ${
             isLight ? 'bg-slate-100/80 border-slate-200' : 'bg-neutral-950/90 border-neutral-900'
@@ -171,6 +179,9 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
             <span className={`text-[11px] whitespace-nowrap ${isLight ? 'text-slate-500' : 'text-neutral-400'}`}>
               剩餘 <strong className={isLight ? 'text-slate-800' : 'text-neutral-200'}>{quota.remaining}</strong>/3 次
+            </span>
+            <span className={`text-[10px] hidden sm:inline ${isLight ? 'text-slate-400' : 'text-neutral-500'}`}>
+              (跨日 00:00 自動重置)
             </span>
           </div>
 

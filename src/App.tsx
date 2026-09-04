@@ -5,6 +5,7 @@ import {
   saveSpots,
   loadDailyQuota,
   saveDailyQuota,
+  checkAndResetDailyQuota,
   loadSettings,
   saveSettings,
   INITIAL_DEMO_SPOTS,
@@ -34,8 +35,9 @@ export const App: React.FC = () => {
   // 通知權限狀態
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
-  // 用於追蹤哪些蘑菇已在當前週期觸發過到期通知，避免重複播放音效
-  const alertedSpotIdsRef = useRef<Set<string>>(new Set());
+  // 追蹤到期與提前 1~3 分鐘提醒觸發記錄
+  const finalAlertedSpotIdsRef = useRef<Set<string>>(new Set());
+  const advanceAlertedSpotIdsRef = useRef<Set<string>>(new Set());
 
   // 初次載入
   useEffect(() => {
@@ -47,7 +49,8 @@ export const App: React.FC = () => {
       setSpots(loadedSpots);
     }
 
-    setQuota(loadDailyQuota());
+    const currentQuota = loadDailyQuota();
+    setQuota(checkAndResetDailyQuota(currentQuota));
 
     if (typeof window !== 'undefined' && 'Notification' in window) {
       setNotificationsEnabled(Notification.permission === 'granted');
@@ -112,7 +115,7 @@ export const App: React.FC = () => {
       if (permission === 'granted') {
         setNotificationsEnabled(true);
         new Notification('皮克敏蘑菇追蹤器', {
-          body: '通知權限已啟用！當蘑菇重生或戰鬥結束時，將即時發出提醒。',
+          body: '通知已啟用！系統將於重生前 1~3 分鐘提早提醒，並於準時重生時發出提示。',
           icon: './mushroom-icon.svg',
         });
       } else {
@@ -123,40 +126,81 @@ export const App: React.FC = () => {
     }
   };
 
-  // 定時鐘（每秒更新）與觸發到期提醒檢驗
+  // 定時鐘（每秒更新）、檢查跨日重置與到期提醒
   useEffect(() => {
     const timer = setInterval(() => {
       const now = Date.now();
       setCurrentTime(now);
 
-      // 檢查是否有蘑菇剛剛到期
+      // 檢查是否跨過午夜 00:00 自動重置每日次數
+      setQuota((prevQuota) => checkAndResetDailyQuota(prevQuota));
+
+      // 預設提前提醒時間（毫秒），例如 2 分鐘（在 1~3 分鐘範圍）
+      const advanceWarningMs = (settings.advanceWarningMinutes || 2) * 60 * 1000;
+
+      // 檢查蘑菇倒數
       setSpots((prevSpots) => {
         let hasChanges = false;
         const nextSpots = prevSpots.map((spot) => {
-          let isFinished = false;
+          let targetEndTime: number | null | undefined = null;
 
-          if (spot.status === 'cooldown' && spot.cooldownEndTime && now >= spot.cooldownEndTime) {
-            isFinished = true;
-          } else if (spot.status === 'battling' && spot.battleEndTime && now >= spot.battleEndTime) {
-            isFinished = true;
+          if (spot.status === 'cooldown') {
+            targetEndTime = spot.cooldownEndTime;
+          } else if (spot.status === 'battling') {
+            targetEndTime = spot.battleEndTime;
           }
 
-          if (isFinished) {
-            // 若尚未觸發此點位的提醒
-            if (!alertedSpotIdsRef.current.has(spot.id)) {
-              alertedSpotIdsRef.current.add(spot.id);
+          if (!targetEndTime) return spot;
 
-              // 播放和弦提示音與振動
+          const diffMs = targetEndTime - now;
+
+          // 1. 檢查是否進入提前 1~3 分鐘預警區間（diffMs <= advanceWarningMs 且 diffMs > 0）
+          if (diffMs <= advanceWarningMs && diffMs > 0) {
+            if (!advanceAlertedSpotIdsRef.current.has(spot.id)) {
+              advanceAlertedSpotIdsRef.current.add(spot.id);
+
+              // 溫和預警音效與震動
               if (settings.soundEnabled) playAlertChime();
-              if (settings.vibrationEnabled) triggerVibration();
+              if (settings.vibrationEnabled) triggerVibration([150, 100, 150]);
 
-              // 推送瀏覽器通知
-              if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+              // 提早通知推播
+              if (
+                typeof window !== 'undefined' &&
+                'Notification' in window &&
+                Notification.permission === 'granted'
+              ) {
+                try {
+                  const minutesLeft = Math.ceil(diffMs / 60000);
+                  new Notification(`⚠️ 蘑菇即將出現：${spot.name}`, {
+                    body: `${spot.name} 將於 ${minutesLeft} 分鐘後重生！請準備開啟皮克敏 Bloom。`,
+                    icon: './mushroom-icon.svg',
+                    tag: `mushroom-advance-${spot.id}`,
+                  });
+                } catch (e) {
+                  console.error(e);
+                }
+              }
+            }
+          }
+
+          // 2. 檢查是否正式到期（diffMs <= 0）
+          if (diffMs <= 0) {
+            if (!finalAlertedSpotIdsRef.current.has(spot.id)) {
+              finalAlertedSpotIdsRef.current.add(spot.id);
+
+              if (settings.soundEnabled) playAlertChime();
+              if (settings.vibrationEnabled) triggerVibration([300, 150, 300, 150, 500]);
+
+              if (
+                typeof window !== 'undefined' &&
+                'Notification' in window &&
+                Notification.permission === 'granted'
+              ) {
                 try {
                   new Notification(`🍄 蘑菇已出現：${spot.name}`, {
-                    body: `${spot.name} 15 分鐘重生冷卻完畢，可立即登入派兵討伐！`,
+                    body: `${spot.name} 重生完畢！可立即登入皮克敏 Bloom 派兵討伐！`,
                     icon: './mushroom-icon.svg',
-                    tag: `mushroom-${spot.id}`,
+                    tag: `mushroom-ready-${spot.id}`,
                   });
                 } catch (e) {
                   console.error(e);
@@ -182,7 +226,22 @@ export const App: React.FC = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [settings.soundEnabled, settings.vibrationEnabled]);
+  }, [settings.soundEnabled, settings.vibrationEnabled, settings.advanceWarningMinutes]);
+
+  // 當應用程式返回前景時，立即確認跨日重置
+  useEffect(() => {
+    const handleFocusOrVisible = () => {
+      if (document.visibilityState === 'visible') {
+        setQuota((prev) => checkAndResetDailyQuota(prev));
+      }
+    };
+    window.addEventListener('visibilitychange', handleFocusOrVisible);
+    window.addEventListener('focus', handleFocusOrVisible);
+    return () => {
+      window.removeEventListener('visibilitychange', handleFocusOrVisible);
+      window.removeEventListener('focus', handleFocusOrVisible);
+    };
+  }, []);
 
   // 額度增減
   const handleUpdateQuota = (delta: number) => {
@@ -205,7 +264,8 @@ export const App: React.FC = () => {
       const newSpot: MushroomSpot = {
         id: `spot-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
         name: spotData.name || '未命名蘑菇',
-        color: spotData.color || 'red',
+        category: spotData.category || 'color',
+        typeId: spotData.typeId || 'red',
         size: spotData.size || 'normal',
         notes: spotData.notes || '',
         status: 'idle',
@@ -216,21 +276,24 @@ export const App: React.FC = () => {
     }
   };
 
-  // 更新卡片狀態
+  // 更新卡片狀態（重置通知標記）
   const handleUpdateSpot = useCallback((updated: MushroomSpot) => {
-    alertedSpotIdsRef.current.delete(updated.id);
+    finalAlertedSpotIdsRef.current.delete(updated.id);
+    advanceAlertedSpotIdsRef.current.delete(updated.id);
     setSpots((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
   }, []);
 
   // 刪除點位
   const handleDeleteSpot = (id: string) => {
-    alertedSpotIdsRef.current.delete(id);
+    finalAlertedSpotIdsRef.current.delete(id);
+    advanceAlertedSpotIdsRef.current.delete(id);
     setSpots((prev) => prev.filter((s) => s.id !== id));
   };
 
   // 載入示範資料
   const handleLoadDemoData = () => {
-    alertedSpotIdsRef.current.clear();
+    finalAlertedSpotIdsRef.current.clear();
+    advanceAlertedSpotIdsRef.current.clear();
     setSpots(INITIAL_DEMO_SPOTS);
     saveSpots(INITIAL_DEMO_SPOTS);
   };
@@ -402,7 +465,7 @@ export const App: React.FC = () => {
           isLight ? 'border-slate-200 bg-white text-slate-500' : 'border-neutral-900 bg-black text-neutral-600'
         }`}
       >
-        <div>皮克敏蘑菇時間紀錄器 · 支援 iOS / Android PWA · OLED 純黑與明亮雙主題</div>
+        <div>皮克敏蘑菇時間紀錄器 · 5 分鐘重生冷卻 · 提前 1~3 分鐘預警 · 三大分類派遣</div>
         <div className="flex items-center justify-center gap-3">
           <button onClick={() => setIsGuideOpen(true)} className="hover:underline">
             使用說明書

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { MushroomSpot, MushroomColor } from '../types/mushroom';
-import { Clock, Calendar, CheckCircle2, Swords, RefreshCw, MoreVertical, Trash2, Edit2 } from 'lucide-react';
+import { MushroomSpot } from '../types/mushroom';
+import { Clock, Calendar, CheckCircle2, Swords, RefreshCw, MoreVertical, Trash2, Edit2, AlertCircle } from 'lucide-react';
 import { exportMushroomToCalendar } from '../utils/ics';
+import { getMushroomMeta } from '../utils/mushroomData';
 
 interface MushroomCardProps {
   spot: MushroomSpot;
@@ -11,23 +12,6 @@ interface MushroomCardProps {
   onEditSpot: (spot: MushroomSpot) => void;
   theme?: 'oled' | 'light';
 }
-
-const COLOR_MAP: Record<MushroomColor, { label: string; bg: string; text: string; border: string }> = {
-  red: { label: '紅色', bg: 'bg-red-950/40', text: 'text-red-400', border: 'border-red-900/60' },
-  blue: { label: '藍色', bg: 'bg-blue-950/40', text: 'text-blue-400', border: 'border-blue-900/60' },
-  yellow: { label: '黃色', bg: 'bg-yellow-950/40', text: 'text-yellow-400', border: 'border-yellow-900/60' },
-  purple: { label: '紫色', bg: 'bg-purple-950/40', text: 'text-purple-400', border: 'border-purple-900/60' },
-  white: { label: '白色', bg: 'bg-slate-900/60', text: 'text-slate-200', border: 'border-slate-700/60' },
-  rock: { label: '岩石', bg: 'bg-zinc-900/60', text: 'text-zinc-300', border: 'border-zinc-700/60' },
-  winged: { label: '羽翼', bg: 'bg-pink-950/40', text: 'text-pink-400', border: 'border-pink-900/60' },
-  fire: { label: '烈火', bg: 'bg-orange-950/40', text: 'text-orange-400', border: 'border-orange-900/60' },
-  water: { label: '水流', bg: 'bg-cyan-950/40', text: 'text-cyan-400', border: 'border-cyan-900/60' },
-  electric: { label: '電力', bg: 'bg-amber-950/40', text: 'text-amber-400', border: 'border-amber-900/60' },
-  poison: { label: '劇毒', bg: 'bg-lime-950/40', text: 'text-lime-400', border: 'border-lime-900/60' },
-  mystery: { label: '神秘', bg: 'bg-teal-950/40', text: 'text-teal-400', border: 'border-teal-900/60' },
-  giant: { label: '巨大', bg: 'bg-rose-950/40', text: 'text-rose-400', border: 'border-rose-900/60' },
-  special: { label: '特殊', bg: 'bg-fuchsia-950/40', text: 'text-fuchsia-400', border: 'border-fuchsia-900/60' },
-};
 
 export const MushroomCard: React.FC<MushroomCardProps> = ({
   spot,
@@ -42,9 +26,9 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
   const [showCustomBattleInput, setShowCustomBattleInput] = useState(false);
 
   const isLight = theme === 'light';
-  const colorConfig = COLOR_MAP[spot.color] || COLOR_MAP.red;
+  const meta = getMushroomMeta(spot.typeId);
 
-  // 計算冷卻剩餘時間（毫秒）
+  // 計算冷卻剩餘時間（毫秒），預設冷卻為 5 分鐘
   let remainingMs = 0;
   let progressPercent = 0;
   let isCooldown = false;
@@ -54,7 +38,7 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
   if (spot.status === 'cooldown' && spot.cooldownEndTime) {
     remainingMs = Math.max(0, spot.cooldownEndTime - currentTime);
     isCooldown = true;
-    const totalDuration = 15 * 60 * 1000;
+    const totalDuration = 5 * 60 * 1000; // 5 分鐘重生冷卻
     progressPercent = Math.min(100, Math.max(0, ((totalDuration - remainingMs) / totalDuration) * 100));
     if (remainingMs <= 0) {
       isReady = true;
@@ -68,6 +52,9 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
       isBattling = false;
     }
   }
+
+  // 判定是否進入 1~3 分鐘提前預警區間
+  const isApproaching = remainingMs > 0 && remainingMs <= 3 * 60 * 1000;
 
   // 格式化剩餘時間 MM:SS 或 HH:MM:SS
   const formatRemaining = (ms: number) => {
@@ -87,8 +74,8 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
     return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}`;
   };
 
-  // 啟動 15 分鐘擊破重生倒數
-  const handleStartCooldown = (minutes = 15) => {
+  // 啟動 5 分鐘擊破重生倒數
+  const handleStartCooldown = (minutes = 5) => {
     const cooldownEndTime = Date.now() + minutes * 60 * 1000;
     onUpdateSpot({
       ...spot,
@@ -129,9 +116,10 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
     if (!targetMs) return;
 
     exportMushroomToCalendar({
-      title: `${spot.name} (${colorConfig.label})`,
-      notes: spot.notes,
+      title: `${spot.name} (${meta.name})`,
+      notes: `${meta.dispatchRule ? `【派遣限制】：${meta.dispatchRule}\n` : ''}${spot.notes || ''}`,
       targetTimeMs: targetMs,
+      advanceMinutes: 2, // 提前 2 分鐘（在 1~3 分鐘區間）響鈴
     });
   };
 
@@ -141,6 +129,8 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
         isLight
           ? isReady
             ? 'border-emerald-500 bg-emerald-50/70 shadow-md'
+            : isApproaching
+            ? 'border-amber-400 bg-amber-50/50 shadow-md ring-1 ring-amber-300'
             : isCooldown
             ? 'border-amber-200 bg-white shadow-sm'
             : isBattling
@@ -148,6 +138,8 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
             : 'border-slate-200 bg-white shadow-sm'
           : isReady
           ? 'border-emerald-500/80 shadow-[0_0_20px_rgba(16,185,129,0.15)] bg-emerald-950/10'
+          : isApproaching
+          ? 'border-amber-500/80 shadow-[0_0_15px_rgba(245,158,11,0.2)] bg-amber-950/20'
           : isCooldown
           ? 'border-neutral-800 bg-oled-card hover:border-neutral-700'
           : isBattling
@@ -155,15 +147,30 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
           : 'border-neutral-900 bg-oled-card'
       }`}
     >
-      {/* 卡片標頭：名稱、顏色標籤、選單按鈕 */}
+      {/* 卡片標頭：分類、名稱、屬性標籤、選單按鈕 */}
       <div className="flex items-start justify-between gap-2">
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap mb-1">
+          <div className="flex items-center gap-1.5 flex-wrap mb-1">
+            {/* 分類大標籤 */}
             <span
-              className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${colorConfig.bg} ${colorConfig.text} ${colorConfig.border}`}
+              className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${
+                meta.category === 'color'
+                  ? 'bg-neutral-900 text-neutral-300 border-neutral-700'
+                  : meta.category === 'element'
+                  ? 'bg-indigo-950/50 text-indigo-300 border-indigo-700'
+                  : 'bg-fuchsia-950/50 text-fuchsia-300 border-fuchsia-700'
+              }`}
             >
-              {colorConfig.label}蘑菇
+              {meta.categoryName}
             </span>
+
+            {/* 具體顏色/屬性標籤 */}
+            <span
+              className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${meta.badgeBg} ${meta.badgeText} ${meta.badgeBorder}`}
+            >
+              {meta.name}
+            </span>
+
             {spot.size && spot.size !== 'normal' && (
               <span
                 className={`text-[10px] uppercase font-mono px-1.5 py-0.5 rounded border ${
@@ -175,6 +182,7 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
                 {spot.size === 'giant' ? '巨大' : '大'}
               </span>
             )}
+
             <h3
               className={`text-sm font-bold truncate ${
                 isLight ? 'text-slate-900' : 'text-neutral-100'
@@ -183,8 +191,17 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
               {spot.name}
             </h3>
           </div>
+
+          {/* 限定派遣皮克敏提示（元素菇專屬） */}
+          {meta.dispatchRule && (
+            <div className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-500 border border-amber-500/20 mb-1">
+              <span>⚠️ 限定：</span>
+              <span>{meta.dispatchRule}</span>
+            </div>
+          )}
+
           {spot.notes && (
-            <p className={`text-xs truncate mt-0.5 ${isLight ? 'text-slate-500' : 'text-neutral-500'}`}>
+            <p className={`text-xs truncate ${isLight ? 'text-slate-500' : 'text-neutral-500'}`}>
               {spot.notes}
             </p>
           )}
@@ -267,22 +284,28 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
               </div>
             </div>
             <button
-              onClick={() => handleStartCooldown(15)}
+              onClick={() => handleStartCooldown(5)}
               className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors ${
                 isLight
                   ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
                   : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 hover:bg-emerald-500/30'
               }`}
             >
-              打完 +15m
+              打完 +5m
             </button>
           </div>
         ) : isCooldown ? (
           <div className="w-full">
-            <div className="flex items-center justify-between mb-1.5">
+            <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
               <div className="flex items-center gap-1.5 text-xs text-amber-500 font-semibold">
                 <Clock size={14} className="animate-spin-slow" />
-                <span>15 分鐘重生倒數中</span>
+                <span>5 分鐘重生倒數中</span>
+                {isApproaching && (
+                  <span className="flex items-center gap-0.5 text-[10px] px-1.5 py-0.2 bg-amber-500/20 text-amber-400 rounded-full border border-amber-500/40 animate-pulse">
+                    <AlertCircle size={10} />
+                    <span>即將出現 (1~3分)</span>
+                  </span>
+                )}
               </div>
               <div className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-neutral-400'}`}>
                 預計 {formatTargetClock(spot.cooldownEndTime!)} 重生
@@ -291,7 +314,11 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
             <div className="flex items-baseline justify-between">
               <span
                 className={`text-2xl font-black font-mono tracking-tight ${
-                  isLight ? 'text-slate-900' : 'text-white'
+                  isApproaching
+                    ? 'text-amber-400 animate-pulse'
+                    : isLight
+                    ? 'text-slate-900'
+                    : 'text-white'
                 }`}
               >
                 {formatRemaining(remainingMs)}
@@ -303,10 +330,10 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
                     ? 'bg-indigo-50 border-indigo-200 text-indigo-700 hover:bg-indigo-100'
                     : 'bg-indigo-950/30 text-indigo-400 hover:text-indigo-300 border-indigo-900/50'
                 }`}
-                title="加入手機系統行事曆鬧鐘"
+                title="加入手機系統行事曆（含提前 2 分鐘鬧鐘）"
               >
                 <Calendar size={12} />
-                <span>行事曆提醒</span>
+                <span>行事曆提醒 (提早2分)</span>
               </button>
             </div>
             {/* 倒數進度條 */}
@@ -354,13 +381,13 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
                   <span>提醒</span>
                 </button>
                 <button
-                  onClick={() => handleStartCooldown(15)}
+                  onClick={() => handleStartCooldown(5)}
                   className={`px-2 py-1 rounded text-[11px] border transition-colors ${
                     isLight
                       ? 'bg-white border-slate-300 text-slate-700 hover:bg-slate-100'
                       : 'bg-neutral-900 hover:bg-neutral-800 text-neutral-300 border-neutral-800'
                   }`}
-                  title="提早擊破並開始 15 分鐘重生冷卻"
+                  title="提早擊破並開始 5 分鐘重生冷卻"
                 >
                   提早打完
                 </button>
@@ -375,7 +402,7 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
           >
             <span>目前狀態：空閒中</span>
             <span className={isLight ? 'text-slate-400' : 'text-neutral-600'}>
-              點擊下方按鈕啟動計時
+              點擊下方啟動 5 分鐘重生倒數
             </span>
           </div>
         )}
@@ -384,7 +411,7 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
       {/* 快捷操作按鈕列 */}
       <div className="grid grid-cols-2 gap-2 mt-2">
         <button
-          onClick={() => handleStartCooldown(15)}
+          onClick={() => handleStartCooldown(5)}
           className={`flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border text-xs font-semibold transition-all shadow-sm active:scale-[0.98] ${
             isLight
               ? 'bg-slate-100 hover:bg-slate-200 border-slate-200 text-slate-800'
@@ -392,7 +419,7 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
           }`}
         >
           <Clock size={14} className="text-amber-500" />
-          <span>剛打完 (15分)</span>
+          <span>剛打完 (5分)</span>
         </button>
 
         <button

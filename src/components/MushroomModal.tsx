@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { MushroomSpot, MushroomColor } from '../types/mushroom';
-import { X, Sparkles, Dices } from 'lucide-react';
+import { MushroomSpot, MushroomCategory, MushroomTypeId } from '../types/mushroom';
+import { X, Sparkles, Dices, AlertTriangle, Calendar } from 'lucide-react';
 import { getRandomMushroomName } from '../utils/randomNames';
+import { COLOR_MUSHROOMS, ELEMENT_MUSHROOMS, EVENT_MUSHROOMS, isWeekend, getMushroomMeta } from '../utils/mushroomData';
 
 interface MushroomModalProps {
   isOpen: boolean;
@@ -11,23 +12,6 @@ interface MushroomModalProps {
   theme?: 'oled' | 'light';
 }
 
-const COLOR_OPTIONS: { id: MushroomColor; label: string; bg: string; border: string; text: string }[] = [
-  { id: 'red', label: '紅色', bg: 'bg-red-950/50', border: 'border-red-500', text: 'text-red-400' },
-  { id: 'blue', label: '藍色', bg: 'bg-blue-950/50', border: 'border-blue-500', text: 'text-blue-400' },
-  { id: 'yellow', label: '黃色', bg: 'bg-yellow-950/50', border: 'border-yellow-500', text: 'text-yellow-400' },
-  { id: 'purple', label: '紫色', bg: 'bg-purple-950/50', border: 'border-purple-500', text: 'text-purple-400' },
-  { id: 'white', label: '白色', bg: 'bg-slate-800/50', border: 'border-slate-400', text: 'text-slate-200' },
-  { id: 'rock', label: '岩石', bg: 'bg-zinc-800/50', border: 'border-zinc-400', text: 'text-zinc-300' },
-  { id: 'winged', label: '羽翼', bg: 'bg-pink-950/50', border: 'border-pink-500', text: 'text-pink-400' },
-  { id: 'fire', label: '烈火', bg: 'bg-orange-950/50', border: 'border-orange-500', text: 'text-orange-400' },
-  { id: 'water', label: '水流', bg: 'bg-cyan-950/50', border: 'border-cyan-500', text: 'text-cyan-400' },
-  { id: 'electric', label: '電力', bg: 'bg-amber-950/50', border: 'border-amber-500', text: 'text-amber-400' },
-  { id: 'poison', label: '劇毒', bg: 'bg-lime-950/50', border: 'border-lime-500', text: 'text-lime-400' },
-  { id: 'mystery', label: '神秘', bg: 'bg-teal-950/50', border: 'border-teal-500', text: 'text-teal-400' },
-  { id: 'giant', label: '巨大', bg: 'bg-rose-950/50', border: 'border-rose-500', text: 'text-rose-400' },
-  { id: 'special', label: '特殊', bg: 'bg-fuchsia-950/50', border: 'border-fuchsia-500', text: 'text-fuchsia-400' },
-];
-
 export const MushroomModal: React.FC<MushroomModalProps> = ({
   isOpen,
   onClose,
@@ -36,21 +20,25 @@ export const MushroomModal: React.FC<MushroomModalProps> = ({
   theme = 'oled',
 }) => {
   const [name, setName] = useState('');
-  const [color, setColor] = useState<MushroomColor>('red');
+  const [category, setCategory] = useState<MushroomCategory>('color');
+  const [typeId, setTypeId] = useState<MushroomTypeId>('red');
   const [size, setSize] = useState<'normal' | 'large' | 'giant'>('normal');
   const [notes, setNotes] = useState('');
 
   const isLight = theme === 'light';
+  const weekendActive = isWeekend();
 
   useEffect(() => {
     if (editingSpot) {
       setName(editingSpot.name);
-      setColor(editingSpot.color);
+      setCategory(editingSpot.category || 'color');
+      setTypeId(editingSpot.typeId || 'red');
       setSize(editingSpot.size || 'normal');
       setNotes(editingSpot.notes || '');
     } else {
       setName('');
-      setColor('red');
+      setCategory('color');
+      setTypeId('red');
       setSize('normal');
       setNotes('');
     }
@@ -63,13 +51,16 @@ export const MushroomModal: React.FC<MushroomModalProps> = ({
     setName(randomName);
   };
 
+  const selectedMeta = getMushroomMeta(typeId);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) return;
 
     onSave({
       name: name.trim(),
-      color,
+      category,
+      typeId,
       size,
       notes: notes.trim(),
     });
@@ -79,7 +70,7 @@ export const MushroomModal: React.FC<MushroomModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
       <div
-        className={`w-full max-w-md rounded-2xl border shadow-2xl overflow-hidden flex flex-col max-h-[90vh] transition-colors ${
+        className={`w-full max-w-lg rounded-2xl border shadow-2xl overflow-hidden flex flex-col max-h-[92vh] transition-colors ${
           isLight ? 'bg-white border-slate-200 text-slate-900' : 'bg-oled-card border-neutral-800 text-neutral-100'
         }`}
       >
@@ -105,7 +96,7 @@ export const MushroomModal: React.FC<MushroomModalProps> = ({
 
         {/* 表單內容 */}
         <form onSubmit={handleSubmit} className="p-5 overflow-y-auto space-y-4 text-xs">
-          {/* 點位名稱與隨機生成按鈕 */}
+          {/* 點位名稱與隨機生成 */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className={`font-semibold ${isLight ? 'text-slate-700' : 'text-neutral-300'}`}>
@@ -125,48 +116,199 @@ export const MushroomModal: React.FC<MushroomModalProps> = ({
                 <span>隨機生成名稱</span>
               </button>
             </div>
-            <div className="relative">
-              <input
-                type="text"
-                required
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="例：大安公園音樂台、二二八和平公園水池"
-                className={`w-full rounded-xl px-3 py-2 border focus:outline-none transition-colors ${
-                  isLight
-                    ? 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-emerald-600 focus:bg-white'
-                    : 'bg-black border-neutral-800 text-neutral-100 placeholder-neutral-600 focus:border-emerald-500'
-                }`}
-              />
-            </div>
+            <input
+              type="text"
+              required
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="例：大安公園音樂台、二二八和平公園水池"
+              className={`w-full rounded-xl px-3 py-2 border focus:outline-none transition-colors ${
+                isLight
+                  ? 'bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-400 focus:border-emerald-600 focus:bg-white'
+                  : 'bg-black border-neutral-800 text-neutral-100 placeholder-neutral-600 focus:border-emerald-500'
+              }`}
+            />
           </div>
 
-          {/* 顏色與屬性選擇 */}
+          {/* 蘑菇三大主分類切換頁籤 */}
           <div>
-            <label className={`block font-semibold mb-2 ${isLight ? 'text-slate-700' : 'text-neutral-300'}`}>
-              蘑菇屬性 / 顏色
+            <label className={`block font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-neutral-300'}`}>
+              選擇蘑菇體系分類
             </label>
-            <div className="grid grid-cols-4 gap-2">
-              {COLOR_OPTIONS.map((item) => (
-                <button
-                  type="button"
-                  key={item.id}
-                  onClick={() => setColor(item.id)}
-                  className={`py-2 px-1 rounded-xl border text-center font-medium transition-all ${
-                    color === item.id
-                      ? `${item.bg} ${item.border} ${item.text} ring-2 ring-emerald-500 shadow-md font-bold`
-                      : isLight
-                      ? 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
-                      : 'bg-black border-neutral-900 text-neutral-400 hover:border-neutral-800'
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setCategory('color');
+                  setTypeId('red');
+                }}
+                className={`py-2 px-2 rounded-xl border text-center font-medium transition-all ${
+                  category === 'color'
+                    ? 'bg-emerald-600 text-white font-bold border-emerald-600 shadow-sm'
+                    : isLight
+                    ? 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                    : 'bg-neutral-900 border-neutral-800 text-neutral-400'
+                }`}
+              >
+                1. 顏色菇 (基礎)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setCategory('element');
+                  setTypeId('fire');
+                }}
+                className={`py-2 px-2 rounded-xl border text-center font-medium transition-all ${
+                  category === 'element'
+                    ? 'bg-indigo-600 text-white font-bold border-indigo-600 shadow-sm'
+                    : isLight
+                    ? 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                    : 'bg-neutral-900 border-neutral-800 text-neutral-400'
+                }`}
+              >
+                2. 元素菇 (屬性)
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setCategory('event');
+                  setTypeId(weekendActive ? 'event_giant' : 'event_normal');
+                }}
+                className={`py-2 px-2 rounded-xl border text-center font-medium transition-all ${
+                  category === 'event'
+                    ? 'bg-fuchsia-600 text-white font-bold border-fuchsia-600 shadow-sm'
+                    : isLight
+                    ? 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
+                    : 'bg-neutral-900 border-neutral-800 text-neutral-400'
+                }`}
+              >
+                3. 活動菇 (當月/巨型)
+              </button>
             </div>
           </div>
 
-          {/* 蘑菇尺寸 */}
+          {/* 子選項展示區 */}
+          <div
+            className={`p-3 rounded-xl border ${
+              isLight ? 'bg-slate-50 border-slate-200' : 'bg-black border-neutral-900'
+            }`}
+          >
+            {category === 'color' && (
+              <div>
+                <div className={`text-[11px] mb-2 ${isLight ? 'text-slate-600' : 'text-neutral-400'}`}>
+                  八種基礎顏色菇（可派同色皮克敏取得攻擊力加成）：
+                </div>
+                <div className="grid grid-cols-4 gap-2">
+                  {Object.values(COLOR_MUSHROOMS).map((item) => (
+                    <button
+                      type="button"
+                      key={item.id}
+                      onClick={() => setTypeId(item.id)}
+                      className={`py-2 px-1 rounded-xl border text-center font-medium transition-all ${
+                        typeId === item.id
+                          ? `${item.badgeBg} ${item.badgeBorder} ${item.badgeText} ring-2 ring-emerald-500 font-bold shadow-md`
+                          : isLight
+                          ? 'bg-white border-slate-200 text-slate-600 hover:bg-slate-100'
+                          : 'bg-neutral-950 border-neutral-900 text-neutral-400'
+                      }`}
+                    >
+                      {item.name.replace('蘑菇', '')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {category === 'element' && (
+              <div className="space-y-2">
+                <div className={`text-[11px] ${isLight ? 'text-slate-600' : 'text-neutral-400'}`}>
+                  五種屬性元素菇（具備嚴格限定派遣限制）：
+                </div>
+                <div className="grid grid-cols-1 gap-2">
+                  {Object.values(ELEMENT_MUSHROOMS).map((item) => (
+                    <button
+                      type="button"
+                      key={item.id}
+                      onClick={() => setTypeId(item.id)}
+                      className={`p-2.5 rounded-xl border text-left flex items-center justify-between transition-all ${
+                        typeId === item.id
+                          ? `${item.badgeBg} ${item.badgeBorder} ring-2 ring-indigo-500 font-bold shadow-md`
+                          : isLight
+                          ? 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
+                          : 'bg-neutral-950 border-neutral-900 text-neutral-400'
+                      }`}
+                    >
+                      <div>
+                        <div className={`text-xs font-bold ${item.badgeText}`}>{item.name}</div>
+                        <div className={`text-[10px] ${isLight ? 'text-slate-500' : 'text-neutral-500'}`}>
+                          {item.description}
+                        </div>
+                      </div>
+                      <div className="px-2 py-1 rounded bg-amber-500/10 text-amber-500 border border-amber-500/30 text-[11px] font-semibold whitespace-nowrap">
+                        {item.dispatchRule}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {category === 'event' && (
+              <div className="space-y-2">
+                <div className={`text-[11px] ${isLight ? 'text-slate-600' : 'text-neutral-400'}`}>
+                  活動主題蘑菇（配合時間週期出現）：
+                </div>
+                <div className="grid grid-cols-1 gap-2">
+                  {Object.values(EVENT_MUSHROOMS).map((item) => {
+                    const isGiant = item.id === 'event_giant';
+                    return (
+                      <button
+                        type="button"
+                        key={item.id}
+                        onClick={() => setTypeId(item.id)}
+                        className={`p-3 rounded-xl border text-left transition-all ${
+                          typeId === item.id
+                            ? `${item.badgeBg} ${item.badgeBorder} ring-2 ring-fuchsia-500 font-bold shadow-md`
+                            : isLight
+                            ? 'bg-white border-slate-200 text-slate-700 hover:bg-slate-100'
+                            : 'bg-neutral-950 border-neutral-900 text-neutral-400'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className={`text-xs font-bold ${item.badgeText}`}>{item.name}</span>
+                          {isGiant && (
+                            <span
+                              className={`text-[10px] px-2 py-0.5 rounded-full font-semibold border flex items-center gap-1 ${
+                                weekendActive
+                                  ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+                                  : 'bg-neutral-800 text-neutral-400 border-neutral-700'
+                              }`}
+                            >
+                              <Calendar size={11} />
+                              {weekendActive ? '週末進行中' : '週末限定 (六、日登場)'}
+                            </span>
+                          )}
+                        </div>
+                        <div className={`text-[11px] ${isLight ? 'text-slate-500' : 'text-neutral-500'}`}>
+                          {item.description}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 派遣規則醒目提醒 */}
+          {selectedMeta.dispatchRule && (
+            <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center gap-2 text-amber-500 text-xs">
+              <AlertTriangle size={15} className="flex-shrink-0" />
+              <span>派遣限制注意：{selectedMeta.name}{selectedMeta.dispatchRule}！</span>
+            </div>
+          )}
+
+          {/* 蘑菇尺寸規格 */}
           <div>
             <label className={`block font-semibold mb-1.5 ${isLight ? 'text-slate-700' : 'text-neutral-300'}`}>
               蘑菇尺寸規格
@@ -207,7 +349,7 @@ export const MushroomModal: React.FC<MushroomModalProps> = ({
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="例：容易掉落紅色特殊精華、建議出動 40 隻紫色主力"
+              placeholder="例：容易掉落特級精華、預計號召 5 位好友合擊"
               rows={2}
               className={`w-full rounded-xl px-3 py-2 border focus:outline-none transition-colors resize-none ${
                 isLight
