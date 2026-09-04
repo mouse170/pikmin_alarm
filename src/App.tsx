@@ -17,7 +17,7 @@ import { MushroomModal } from './components/MushroomModal';
 import { OledHudModal } from './components/OledHudModal';
 import { GuideModal } from './components/GuideModal';
 import { ShortcutModal } from './components/ShortcutModal';
-import { Plus, CheckCircle, Clock, Monitor, Sparkles } from 'lucide-react';
+import { Plus, CheckCircle2, Clock, Sparkles, Sprout, Flame, Bell, ShieldCheck } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [spots, setSpots] = useState<MushroomSpot[]>([]);
@@ -168,7 +168,7 @@ export const App: React.FC = () => {
               ) {
                 try {
                   const minutesLeft = Math.ceil(diffMs / 60000);
-                  new Notification(`⚠️ 蘑菇即將出現：${spot.name}`, {
+                  new Notification(`蘑菇即將出現：${spot.name}`, {
                     body: `${spot.name} 將於 ${minutesLeft} 分鐘後重生！請準備開啟皮克敏 Bloom。`,
                     icon: './mushroom-icon.svg',
                     tag: `mushroom-advance-${spot.id}`,
@@ -194,7 +194,7 @@ export const App: React.FC = () => {
                 Notification.permission === 'granted'
               ) {
                 try {
-                  new Notification(`🍄 蘑菇已出現：${spot.name}`, {
+                  new Notification(`蘑菇已出現：${spot.name}`, {
                     body: `${spot.name} 5 分鐘重生完畢！可立即登入派兵討伐！`,
                     icon: './mushroom-icon.svg',
                     tag: `mushroom-ready-${spot.id}`,
@@ -293,6 +293,13 @@ export const App: React.FC = () => {
     saveSpots(INITIAL_DEMO_SPOTS);
   };
 
+  // 切換預警音效開關
+  const handleToggleSound = () => {
+    const updated = { ...settings, soundEnabled: !settings.soundEnabled };
+    setSettings(updated);
+    saveSettings(updated);
+  };
+
   // 篩選
   const filteredSpots = spots.filter((s) => {
     if (filterMode === 'active') {
@@ -308,7 +315,7 @@ export const App: React.FC = () => {
   const activeCount = spots.filter((s) => s.status === 'cooldown' || s.status === 'battling').length;
 
   return (
-    <div className="min-h-screen flex flex-col bg-md-background text-md-on-background transition-colors duration-200">
+    <div className="min-h-screen flex flex-col bg-black text-zinc-100 transition-colors duration-200">
       {/* 頂部導航列與額度條 */}
       <Header
         quota={quota}
@@ -326,94 +333,116 @@ export const App: React.FC = () => {
       />
 
       {/* 主工作區 */}
-      <main className="flex-1 max-w-6xl mx-auto w-full px-4 py-5 space-y-4">
-        {/* 電腦版寬螢幕專屬 Material 3 儀表板橫列 */}
-        <div className="hidden md:flex items-center justify-between p-4 rounded-3xl border border-md-outline-variant/60 bg-md-surface-container shadow-sm">
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-md-primary flex items-center justify-center text-md-on-primary font-bold shadow-sm">
-                <Monitor size={16} />
+      <main className="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-4 py-4 sm:py-5 space-y-4 sm:space-y-5">
+        {/* 營運概覽戰術控制艙（Operational Overview Control Deck） */}
+        <section className="flex flex-col gap-3">
+          {/* 頂部營運橫幅 */}
+          <div className="relative overflow-hidden rounded-2xl bg-zinc-950 border border-tactical-border/70 p-4 sm:p-5 shadow-xl">
+            <div className="absolute -right-12 -bottom-12 w-64 h-64 rounded-full bg-tactical-green/5 blur-3xl pointer-events-none" />
+            <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 relative z-10">
+              {/* 左側：品牌標誌與 Token 識別 */}
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-tactical-green/15 flex items-center justify-center text-tactical-green shadow-md flex-shrink-0 ring-1 ring-tactical-green/30">
+                  <Sprout size={24} className="text-tactical-green" />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h1 className="font-display font-bold text-base sm:text-lg text-white tracking-tight">
+                      Material 3 營運監控儀表板
+                    </h1>
+                    <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-tactical-moss border border-tactical-border text-tactical-green font-bold tracking-wider uppercase">
+                      Seed: #3AC200
+                    </span>
+                  </div>
+                  <p className="font-mono text-xs text-zinc-400 flex items-center gap-1.5 mt-0.5">
+                    <Sparkles size={12} className="text-tactical-green" />
+                    <span>皮克敏全天候戰術偵測 · 跨日 00:00 自動同步</span>
+                  </p>
+                </div>
               </div>
-              <div>
-                <div className="font-bold text-sm text-md-on-surface">Material 3 營運監控儀表板</div>
-                <div className="text-[11px] text-md-on-surface-variant font-mono">種子色 Token: #3AC200</div>
+
+              {/* 右側：狀態度量膠囊群 */}
+              <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto">
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-900 border border-tactical-border text-zinc-300 font-mono text-xs">
+                  <span className="text-zinc-400">總點位 :</span>
+                  <span className="font-display font-bold text-white text-sm">{spots.length}</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-900 border border-tactical-border text-zinc-300 font-mono text-xs">
+                  <span className="w-2 h-2 rounded-full bg-tactical-cyan animate-pulse" />
+                  <span className="text-zinc-400">5 分冷卻進行中 :</span>
+                  <span className="font-display font-bold text-tactical-cyan text-sm">{activeCount}</span>
+                </div>
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-tactical-green/15 border border-tactical-green/40 text-tactical-green font-mono text-xs shadow-sm">
+                  <CheckCircle2 size={14} strokeWidth={2.5} />
+                  <span className="text-zinc-300">已重生可進攻 :</span>
+                  <span className="font-display font-bold text-tactical-green text-sm">{readyCount}</span>
+                </div>
               </div>
             </div>
-            <div className="flex items-center gap-4 text-xs">
-              <span className="p-2 rounded-xl bg-md-surface-container-high border border-md-outline-variant/40">
-                總點位：<strong className="text-md-on-surface">{spots.length}</strong>
-              </span>
-              <span className="p-2 rounded-xl bg-md-surface-container-high border border-md-outline-variant/40">
-                5分冷卻進行中：<strong className="text-md-primary">{activeCount}</strong>
-              </span>
-              <span className="p-2 rounded-xl bg-md-primary-container text-md-on-primary-container font-bold">
-                已重生可進攻：{readyCount}
-              </span>
+          </div>
+
+          {/* 快捷篩選標籤列與操作按鈕 */}
+          <div className="flex flex-wrap items-center justify-between gap-2.5 pt-1">
+            <div className="flex items-center gap-1.5 p-1 rounded-full bg-zinc-950 border border-tactical-border/70 shadow-inner">
+              <button
+                type="button"
+                onClick={() => setFilterMode('all')}
+                className={`px-3 py-1 rounded-full font-mono text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                  filterMode === 'all'
+                    ? 'bg-tactical-green text-black shadow-md'
+                    : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
+                }`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${filterMode === 'all' ? 'bg-black' : 'bg-zinc-500'}`} />
+                <span>全部 ({spots.length})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFilterMode('active')}
+                className={`px-3 py-1 rounded-full font-mono text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                  filterMode === 'active'
+                    ? 'bg-tactical-green text-black shadow-md'
+                    : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
+                }`}
+              >
+                <Clock size={12} />
+                <span>計時中 ({activeCount})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFilterMode('ready')}
+                className={`px-3 py-1 rounded-full font-mono text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                  filterMode === 'ready'
+                    ? 'bg-tactical-green text-black shadow-md'
+                    : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
+                }`}
+              >
+                <CheckCircle2 size={12} />
+                <span>已出現 ({readyCount})</span>
+              </button>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingSpot(null);
+                  setIsNewModalOpen(true);
+                }}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-tactical-green text-black hover:bg-tactical-green/90 font-display text-xs font-bold shadow-[0_0_12px_rgba(134,219,112,0.3)] transition-transform active:scale-95"
+              >
+                <Plus size={14} strokeWidth={2.5} />
+                <span>新增點位</span>
+              </button>
             </div>
           </div>
+        </section>
 
-          <div className="flex items-center gap-2 text-xs text-md-on-surface-variant">
-            <span className="flex items-center gap-1">
-              <Sparkles size={13} className="text-md-primary" />
-              <span>深淺色自適應 · 跨日00:00自動重置</span>
-            </span>
-          </div>
-        </div>
-
-        {/* 快捷篩選標籤列與操作按鈕 */}
-        <div className="flex items-center justify-between gap-2 text-xs flex-wrap">
-          <div className="flex items-center gap-1.5 p-1 rounded-2xl border border-md-outline-variant/50 bg-md-surface-container-high shadow-sm">
-            <button
-              onClick={() => setFilterMode('all')}
-              className={`px-3 py-1.5 rounded-xl font-bold transition-all ${
-                filterMode === 'all'
-                  ? 'bg-md-primary text-md-on-primary shadow-sm'
-                  : 'text-md-on-surface-variant hover:text-md-on-surface'
-              }`}
-            >
-              全部 ({spots.length})
-            </button>
-            <button
-              onClick={() => setFilterMode('active')}
-              className={`px-3 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1 ${
-                filterMode === 'active'
-                  ? 'bg-md-primary text-md-on-primary shadow-sm'
-                  : 'text-md-on-surface-variant hover:text-md-on-surface'
-              }`}
-            >
-              <Clock size={13} />
-              <span>計時中 ({activeCount})</span>
-            </button>
-            <button
-              onClick={() => setFilterMode('ready')}
-              className={`px-3 py-1.5 rounded-xl font-bold transition-all flex items-center gap-1 ${
-                filterMode === 'ready'
-                  ? 'bg-md-primary text-md-on-primary shadow-sm'
-                  : 'text-md-on-surface-variant hover:text-md-on-surface'
-              }`}
-            >
-              <CheckCircle size={13} />
-              <span>已出現 ({readyCount})</span>
-            </button>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                setEditingSpot(null);
-                setIsNewModalOpen(true);
-              }}
-              className="flex items-center gap-1.5 text-xs py-1.5 px-3.5 rounded-xl bg-md-primary hover:opacity-90 text-md-on-primary font-bold transition-opacity shadow-sm"
-            >
-              <Plus size={15} strokeWidth={2.5} />
-              <span>新增點位</span>
-            </button>
-          </div>
-        </div>
-
-        {/* 蘑菇卡片網格（電腦版自動變為 2 欄或 3 欄並排網格佈局） */}
+        {/* 蘑菇卡片網格（手機 1 欄，平板 2 欄，桌面 3 欄） */}
         {filteredSpots.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {filteredSpots.map((spot) => (
               <MushroomCard
                 key={spot.id}
@@ -429,62 +458,129 @@ export const App: React.FC = () => {
                 theme={theme}
               />
             ))}
-          </div>
+          </section>
         ) : (
-          <div className="py-16 text-center border border-dashed border-md-outline-variant rounded-3xl p-6 bg-md-surface-container-low">
-            <div className="text-3xl mb-2">🍄</div>
-            <div className="text-sm font-bold text-md-on-surface">目前尚無符合條件的蘑菇點位</div>
-            <p className="text-xs mt-1 max-w-xs mx-auto text-md-on-surface-variant">
+          <div className="py-14 text-center border border-dashed border-tactical-border/80 rounded-2xl p-6 bg-zinc-950">
+            <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-tactical-border mx-auto flex items-center justify-center text-tactical-green mb-3">
+              <Sprout size={24} />
+            </div>
+            <div className="font-display text-base font-bold text-white">目前尚無符合條件的蘑菇點位</div>
+            <p className="font-mono text-xs mt-1 max-w-sm mx-auto text-zinc-400">
               點擊右上角「新增點位」建立專屬蘑菇點位，或載入示範資料進行體驗。
             </p>
-            <div className="mt-4 flex items-center justify-center gap-2">
+            <div className="mt-4 flex items-center justify-center gap-2 font-mono text-xs">
               <button
+                type="button"
                 onClick={handleLoadDemoData}
-                className="px-4 py-2 rounded-xl text-xs font-semibold border border-md-outline-variant bg-md-surface-container hover:bg-md-surface-container-high text-md-on-surface transition-colors"
+                className="px-3.5 py-1.5 rounded-xl border border-tactical-border bg-zinc-900 hover:bg-zinc-800 text-zinc-200 transition-colors"
               >
                 載入示範資料
               </button>
               <button
+                type="button"
                 onClick={() => setIsNewModalOpen(true)}
-                className="px-4 py-2 bg-md-primary hover:opacity-90 text-md-on-primary rounded-xl text-xs font-bold transition-opacity shadow-sm"
+                className="px-3.5 py-1.5 bg-tactical-green hover:bg-tactical-green/90 text-black rounded-xl font-bold transition-transform active:scale-95 shadow-sm"
               >
                 新增第一個點位
               </button>
             </div>
           </div>
         )}
+
+        {/* 戰術實況小面板群（Contextual Quick Telemetry Panel） */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
+          {/* 遠征小隊調度狀態 */}
+          <div className="p-3.5 rounded-xl bg-zinc-950 border border-tactical-border/70 flex items-center justify-between shadow-md">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-tactical-border flex items-center justify-center text-tactical-green">
+                <ShieldCheck size={16} />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-mono text-xs font-semibold text-zinc-200">遠征小隊調度狀態</span>
+                <span className="font-mono text-[10px] text-zinc-500">目前 40/40 隻皮克敏在編</span>
+              </div>
+            </div>
+            <span className="px-2 py-0.5 rounded-full font-mono text-[10px] bg-tactical-moss border border-tactical-border text-tactical-green font-bold">
+              戰備充足
+            </span>
+          </div>
+
+          {/* 特殊精華加成加權 */}
+          <div className="p-3.5 rounded-xl bg-zinc-950 border border-tactical-border/70 flex items-center justify-between shadow-md">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-tactical-border flex items-center justify-center text-tactical-cyan">
+                <Flame size={16} />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-mono text-xs font-semibold text-zinc-200">特殊精華加成加權</span>
+                <span className="font-mono text-[10px] text-zinc-500">今日幸運色：紅色 / 櫻花</span>
+              </div>
+            </div>
+            <span className="px-2 py-0.5 rounded-full font-mono text-[10px] bg-zinc-900 border border-tactical-border text-tactical-cyan font-bold">
+              +1.2x 傷害
+            </span>
+          </div>
+
+          {/* 即時語音與蜂鳴提醒開關 */}
+          <div className="p-3.5 rounded-xl bg-zinc-950 border border-tactical-border/70 flex items-center justify-between shadow-md">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-tactical-border flex items-center justify-center text-tactical-amber">
+                <Bell size={16} />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-mono text-xs font-semibold text-zinc-200">即時倒數預警提示</span>
+                <span className="font-mono text-[10px] text-zinc-500">提前 {settings.advanceWarningMinutes || 2} 分鐘提醒</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={handleToggleSound}
+              aria-label="開關倒數提醒音效"
+              className={`w-11 h-6 rounded-full flex items-center px-1 transition-colors ${
+                settings.soundEnabled ? 'bg-tactical-green' : 'bg-zinc-800'
+              }`}
+            >
+              <div
+                className={`w-4 h-4 rounded-full bg-black shadow-sm transition-transform ${
+                  settings.soundEnabled ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+        </section>
       </main>
 
       {/* 底部資訊列 */}
-      <footer className="border-t border-md-outline-variant/40 bg-md-surface-container/60 px-4 py-3.5 text-center text-[11px] space-y-1 transition-colors text-md-on-surface-variant">
-        <div className="flex items-center justify-center gap-2 flex-wrap font-medium">
+      <footer className="border-t border-tactical-border/60 bg-zinc-950 px-4 py-3.5 text-center font-mono text-[11px] space-y-1 text-zinc-400">
+        <div className="flex items-center justify-center gap-2 flex-wrap">
           <span>皮克敏蘑菇追蹤儀表板</span>
           <span>·</span>
           <span>Material 3 Seed: #3AC200</span>
           <span>·</span>
-          <span>5 分鐘極速重生</span>
+          <span>5 分鐘重生</span>
           <span>·</span>
           <span>提前 1~3 分鐘預警</span>
           <span>·</span>
           <span>三大蘑菇體系管理</span>
         </div>
-        <div className="flex items-center justify-center gap-3 pt-1">
-          <button onClick={() => setIsGuideOpen(true)} className="hover:underline">
+        <div className="flex items-center justify-center gap-3 pt-1 text-zinc-400">
+          <button type="button" onClick={() => setIsGuideOpen(true)} className="hover:text-white transition-colors">
             使用指南與平台設定
           </button>
           <span>·</span>
-          <button onClick={handleLoadDemoData} className="hover:underline">
+          <button type="button" onClick={handleLoadDemoData} className="hover:text-white transition-colors">
             重置示範資料
           </button>
           <span>·</span>
           <button
+            type="button"
             onClick={() => {
               if (confirm('確定清空所有點位與自訂資料嗎？')) {
                 setSpots([]);
                 saveSpots([]);
               }
             }}
-            className="text-md-error hover:underline"
+            className="text-tactical-crimson hover:underline"
           >
             清空資料
           </button>
@@ -525,4 +621,5 @@ export const App: React.FC = () => {
     </div>
   );
 };
+
 export default App;

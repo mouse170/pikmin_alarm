@@ -1,7 +1,7 @@
 import React from 'react';
-import { Plus, Moon, Sun, BookOpen, Bell, BellOff, Sparkles } from 'lucide-react';
 import { DailyQuota } from '../types/mushroom';
 import { isWeekend } from '../utils/mushroomData';
+import { Sparkles, Moon, Sun, Bell, BellOff, BookOpen, Compass, Plus } from 'lucide-react';
 
 interface HeaderProps {
   quota: DailyQuota;
@@ -30,137 +30,152 @@ export const Header: React.FC<HeaderProps> = ({
   const weekendActive = isWeekend();
 
   return (
-    <header className="sticky top-0 z-30 border-b border-md-outline-variant/50 bg-md-surface-container/90 backdrop-blur-md transition-colors px-3 py-2.5">
-      <div className="max-w-6xl mx-auto space-y-2">
-        {/* 第一列：標題列與功能按鈕群 */}
+    <header className="sticky top-0 z-40 w-full border-b border-tactical-border/70 bg-black/90 dark:bg-black/95 backdrop-blur-xl transition-colors">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2 sm:py-2.5 flex flex-col gap-2">
+        {/* 第一列：品牌識別、狀態指示與主要操作群 */}
         <div className="flex items-center justify-between gap-2">
-          {/* 左側 Logo 與標題 */}
-          <div className="flex items-center gap-2 min-w-0 flex-shrink">
-            <div className="w-8 h-8 rounded-xl bg-md-primary flex items-center justify-center text-md-on-primary text-base font-black shadow-sm flex-shrink-0">
-              🍄
+          {/* 左側：戰術識別徽章與標題 */}
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-tactical-green/15 text-tactical-green flex items-center justify-center ring-1 ring-tactical-green/30 shadow-[0_0_12px_rgba(134,219,112,0.2)] flex-shrink-0">
+              <Compass size={18} className="text-tactical-green" />
             </div>
-            <div className="min-w-0 flex items-center gap-1.5 flex-wrap">
-              <h1 className="text-sm font-bold tracking-tight text-md-on-surface whitespace-nowrap truncate">
-                皮克敏蘑菇追蹤
-              </h1>
-              <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded-full bg-md-secondary-container text-md-on-secondary-container border border-md-outline-variant/60 flex-shrink-0">
-                {isLight ? '明亮' : 'OLED'}
-              </span>
-              {weekendActive && (
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-md-error-container text-md-on-error-container border border-md-error/30 flex items-center gap-0.5">
-                  <Sparkles size={10} />
-                  <span>週末巨型菇</span>
+
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="font-display font-bold text-sm sm:text-base tracking-tight text-white dark:text-white truncate">
+                  皮克敏蘑菇追蹤
                 </span>
-              )}
+                <span className="font-mono text-[10px] tracking-wider uppercase px-1.5 py-0.5 rounded bg-tactical-moss border border-tactical-border text-tactical-green">
+                  Bloom Radar
+                </span>
+                {weekendActive && (
+                  <span className="font-mono text-[10px] font-semibold px-1.5 py-0.5 rounded bg-tactical-crimson/20 text-tactical-crimson border border-tactical-crimson/30 flex items-center gap-1">
+                    <Sparkles size={10} />
+                    <span>週末巨型菇</span>
+                  </span>
+                )}
+              </div>
+              <span className="hidden sm:inline font-mono text-[11px] text-zinc-400">
+                Pikmin Bloom Tactical HUD
+              </span>
             </div>
           </div>
 
-          {/* 右側按鈕群 */}
-          <div className="flex items-center space-x-1.5 flex-shrink-0">
-            {/* 主題切換按鈕 */}
+          {/* 右側操作群 */}
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
+            {/* 主題切換 */}
             <button
+              type="button"
               onClick={onToggleTheme}
-              title={isLight ? '切換為 OLED 純黑深色模式' : '切換為明亮模式'}
-              className="p-1.5 rounded-xl border border-md-outline-variant bg-md-surface-container-high text-md-on-surface hover:bg-md-surface-variant transition-colors"
+              title={isLight ? '切換至 OLED 純黑模式' : '切換至明亮模式'}
+              className="p-1.5 sm:p-2 rounded-xl bg-zinc-900 border border-tactical-border text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors"
               aria-label="切換主題"
             >
-              {isLight ? <Moon size={16} /> : <Sun size={16} />}
+              {isLight ? <Moon size={15} /> : <Sun size={15} />}
             </button>
 
-            {/* 通知權限按鈕 */}
+            {/* 推播提醒開關 */}
             <button
+              type="button"
               onClick={onRequestNotificationPermission}
-              title={notificationsEnabled ? '推播通知已啟用（含 1~3 分鐘提前提醒）' : '點擊啟用通知'}
-              className={`p-1.5 rounded-xl border transition-colors ${
+              title={notificationsEnabled ? '推播通知已啟用（含 1~3 分鐘預警）' : '點擊啟用通知'}
+              className={`p-1.5 sm:p-2 rounded-xl border transition-all ${
                 notificationsEnabled
-                  ? 'bg-md-primary-container text-md-on-primary-container border-md-primary/40'
-                  : 'bg-md-surface-container-high text-md-on-surface-variant border-md-outline-variant'
+                  ? 'bg-tactical-green/15 text-tactical-green border-tactical-green/40 shadow-[0_0_10px_rgba(134,219,112,0.2)]'
+                  : 'bg-zinc-900 border-tactical-border text-zinc-400 hover:text-zinc-200'
               }`}
-              aria-label="切換推播通知"
+              aria-label="切換通知權限"
             >
-              {notificationsEnabled ? <Bell size={16} /> : <BellOff size={16} />}
+              {notificationsEnabled ? <Bell size={15} /> : <BellOff size={15} />}
             </button>
 
-            {/* OLED HUD 常亮模式按鈕 */}
+            {/* 常亮 HUD 按鈕 */}
             <button
+              type="button"
               onClick={onOpenOledHud}
-              title="開啟微光省電常亮 HUD"
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-md-outline-variant bg-md-surface-container-high text-md-on-surface hover:bg-md-surface-variant transition-colors text-xs font-semibold"
+              title="開啟全螢幕常亮 HUD"
+              className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-zinc-900 border border-tactical-border text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors text-xs font-mono"
             >
-              <Moon size={13} className="text-md-tertiary" />
               <span>HUD</span>
             </button>
 
-            {/* 指南手冊按鈕 */}
+            {/* 說明指南按鈕 */}
             <button
+              type="button"
               onClick={onOpenGuide}
-              title="查看說明指南與平台教學"
-              className="p-1.5 rounded-xl border border-md-outline-variant bg-md-surface-container-high text-md-on-surface hover:bg-md-surface-variant transition-colors"
+              title="查看說明手冊與操作指南"
+              className="p-1.5 sm:p-2 rounded-xl bg-zinc-900 border border-tactical-border text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors"
               aria-label="查看指南"
             >
-              <BookOpen size={16} />
+              <BookOpen size={15} />
             </button>
 
-            {/* 新增點位按鈕 */}
+            {/* 新增點位主要按鈕 */}
             <button
+              type="button"
               onClick={onOpenNewModal}
-              title="新增蘑菇地點"
-              className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-md-primary hover:opacity-90 text-md-on-primary font-bold text-xs transition-opacity shadow-sm whitespace-nowrap"
+              className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-xl bg-tactical-green text-black hover:bg-tactical-green/90 font-display text-xs sm:text-sm font-bold shadow-[0_0_14px_rgba(134,219,112,0.35)] transition-transform active:scale-95"
             >
-              <Plus size={14} strokeWidth={2.5} />
-              <span>新增</span>
+              <Plus size={15} strokeWidth={2.5} />
+              <span>新增點位</span>
             </button>
           </div>
         </div>
 
-        {/* 第二列：今日額度狀態條 */}
-        <div className="flex items-center justify-between gap-2 px-3.5 py-1.5 rounded-2xl border border-md-outline-variant/60 bg-md-surface-container-high text-xs">
-          {/* 額度燈號與剩餘文字 */}
-          <div className="flex items-center gap-2 flex-wrap min-w-0">
-            <span className="text-[11px] whitespace-nowrap font-medium text-md-on-surface-variant">
-              今日額度
+        {/* 第二列：額度膠囊儀表（行動端緊湊呈現、寬螢幕舒展） */}
+        <div className="flex items-center justify-between gap-2 p-1.5 sm:p-2 rounded-xl bg-zinc-950/80 border border-tactical-border/60">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0">
+            <span className="font-mono text-[11px] text-zinc-400 flex items-center gap-1 whitespace-nowrap">
+              <span className="w-1.5 h-1.5 rounded-full bg-tactical-green animate-pulse"></span>
+              <span>今日剩餘額度</span>
             </span>
+
+            {/* 額度指示燈 (1, 2, 3) */}
             <div className="flex items-center gap-1">
-              {[1, 2, 3].map((slot) => {
-                const isActive = slot <= quota.remaining;
+              {[1, 2, 3].map((num) => {
+                const isAvailable = num <= quota.remaining;
                 return (
                   <span
-                    key={slot}
-                    className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
-                      isActive
-                        ? 'bg-md-primary text-md-on-primary shadow-sm'
-                        : 'bg-md-surface-container text-md-on-surface-variant/40 border border-md-outline-variant'
+                    key={num}
+                    className={`w-5 h-5 rounded flex items-center justify-center font-mono text-[10px] font-bold transition-all ${
+                      isAvailable
+                        ? 'bg-tactical-green text-black shadow-[0_0_8px_rgba(134,219,112,0.4)]'
+                        : 'bg-zinc-800 text-zinc-500 border border-zinc-700'
                     }`}
                   >
-                    {slot}
+                    {num}
                   </span>
                 );
               })}
             </div>
-            <span className="text-[11px] whitespace-nowrap text-md-on-surface">
-              剩餘 <strong>{quota.remaining}</strong>/3 次
-            </span>
-            <span className="text-[10px] text-md-on-surface-variant/80 hidden sm:inline">
-              (跨日 00:00 自動重置)
+
+            <span className="font-mono text-xs font-semibold text-tactical-green whitespace-nowrap">
+              ({quota.remaining}/3)
             </span>
           </div>
 
-          {/* 快速加減操作按鈕 */}
-          <div className="flex items-center gap-1.5 flex-shrink-0">
+          <div className="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
             <button
+              type="button"
               onClick={() => onUpdateQuota(-1)}
               disabled={quota.remaining <= 0}
-              className="px-2.5 py-0.5 rounded-lg text-[11px] font-medium border border-md-outline-variant bg-md-surface hover:bg-md-surface-container text-md-on-surface transition-colors whitespace-nowrap disabled:opacity-30"
+              className="px-2 py-1 rounded bg-zinc-900 border border-tactical-border hover:bg-zinc-800 disabled:opacity-40 disabled:pointer-events-none text-zinc-200 font-mono text-[11px] transition-colors"
+              title="消耗一次進攻額度"
             >
-              -1 次
+              -1次
             </button>
             <button
+              type="button"
               onClick={() => onUpdateQuota(1)}
               disabled={quota.remaining >= 3}
-              className="px-2.5 py-0.5 rounded-lg text-[11px] font-medium border border-md-outline-variant bg-md-surface hover:bg-md-surface-container text-md-on-surface transition-colors whitespace-nowrap disabled:opacity-30"
+              className="px-2 py-1 rounded bg-zinc-900 border border-tactical-border hover:bg-zinc-800 disabled:opacity-40 disabled:pointer-events-none text-zinc-200 font-mono text-[11px] transition-colors"
+              title="恢復一次進攻額度"
             >
-              +1 恢復
+              +1恢復
             </button>
+            <span className="hidden sm:inline font-mono text-[10px] text-zinc-500 pl-1">
+              跨日 00:00 自動重置
+            </span>
           </div>
         </div>
       </div>

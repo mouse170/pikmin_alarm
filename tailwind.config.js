@@ -8,6 +8,7 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Nocturnal Expedition Telemetry + Material Design 3 Tokens
         md: {
           primary: 'var(--md-sys-color-primary)',
           'on-primary': 'var(--md-sys-color-on-primary)',
@@ -44,32 +45,21 @@ export default {
           outline: 'var(--md-sys-color-outline)',
           'outline-variant': 'var(--md-sys-color-outline-variant)',
         },
-        oled: {
-          DEFAULT: '#000000',
-          pure: '#000000',
-          card: '#0a0a0a',
-          elevated: '#121212',
-          border: '#1f1f1f',
-          subtle: '#262626'
+        tactical: {
+          cyan: '#94ccff',
+          green: '#86db70',
+          amber: '#ffba27',
+          crimson: '#ff6b6b',
+          moss: '#0f1d13',
+          border: '#1b3320',
+          well: '#070e09',
         },
-        pikmin: {
-          red: '#ef4444',
-          blue: '#3b82f6',
-          yellow: '#eab308',
-          purple: '#a855f7',
-          white: '#f8fafc',
-          rock: '#64748b',
-          winged: '#ec4899',
-          mystery: '#06b6d4',
-          fire: '#f97316',
-          water: '#0ea5e9',
-          electric: '#facc15',
-          poison: '#84cc16'
-        }
       },
       fontFamily: {
-        sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif']
-      }
+        display: ['"Space Grotesk"', '-apple-system', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
+        sans: ['-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+      },
     },
   },
   plugins: [],

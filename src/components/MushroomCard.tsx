@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { MushroomSpot } from '../types/mushroom';
-import { Clock, CheckCircle2, Swords, RefreshCw, MoreVertical, Trash2, Edit2, AlertCircle, Zap, HelpCircle } from 'lucide-react';
+import { Clock, CheckCircle2, Swords, RefreshCw, MoreVertical, Trash2, Edit2, AlertTriangle, Zap, Hourglass } from 'lucide-react';
 import { getMushroomMeta } from '../utils/mushroomData';
 import { isIOS, triggerIOSShortcutTimer } from '../utils/device';
 
@@ -20,7 +20,6 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
   onUpdateSpot,
   onDeleteSpot,
   onEditSpot,
-  onOpenShortcutHelp,
 }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [customMinutes, setCustomMinutes] = useState(60);
@@ -48,6 +47,8 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
   } else if (spot.status === 'battling' && spot.battleEndTime) {
     remainingMs = Math.max(0, spot.battleEndTime - currentTime);
     isBattling = true;
+    const assumedBattleDuration = 60 * 60 * 1000;
+    progressPercent = Math.min(100, Math.max(0, ((assumedBattleDuration - remainingMs) / assumedBattleDuration) * 100));
     if (remainingMs <= 0) {
       isReady = true;
       isBattling = false;
@@ -118,98 +119,108 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
   };
 
   return (
-    <div
-      className={`relative rounded-3xl border transition-all p-4 shadow-sm flex flex-col justify-between ${
-        isReady
-          ? 'bg-md-primary-container text-md-on-primary-container border-md-primary/60 shadow-md ring-1 ring-md-primary/40'
-          : isApproaching
-          ? 'bg-md-surface-container border-amber-500/60 ring-2 ring-amber-500/40'
-          : isCooldown
-          ? 'bg-md-surface-container border-md-outline-variant/60 hover:border-md-primary/50'
-          : isBattling
-          ? 'bg-md-surface-container border-md-secondary/40'
-          : 'bg-md-surface-container-low border-md-outline-variant/40'
-      }`}
-    >
-      <div>
-        {/* 卡片標頭：分類標籤、名稱、功能選單 */}
+    <article className="flex flex-col justify-between rounded-2xl bg-zinc-950 border border-tactical-border/70 p-4 shadow-xl relative overflow-hidden transition-all duration-300 hover:border-tactical-green/40 hover:bg-zinc-900/90">
+      {/* 頂部狀態細邊 */}
+      <div
+        className={`absolute top-0 left-0 right-0 h-1 transition-colors ${
+          isReady
+            ? 'bg-tactical-green shadow-[0_0_12px_rgba(134,219,112,0.9)]'
+            : isApproaching
+            ? 'bg-tactical-amber shadow-[0_0_10px_rgba(255,186,39,0.7)]'
+            : isCooldown
+            ? 'bg-tactical-crimson'
+            : isBattling
+            ? 'bg-tactical-amber'
+            : 'bg-zinc-800'
+        }`}
+      />
+
+      <div className="space-y-3">
+        {/* 卡片標頭：分類、屬性標籤、名稱與功能選單 */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap mb-1">
               {/* 分類標籤 */}
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-md-surface-container-highest text-md-on-surface-variant border border-md-outline-variant/40">
+              <span className="font-mono text-[10px] tracking-wider uppercase px-2 py-0.5 rounded bg-zinc-900 text-zinc-400 border border-zinc-800">
                 {meta.categoryName}
               </span>
 
-              {/* 具體屬性色標 */}
-              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full border ${meta.badgeBg} ${meta.badgeText} ${meta.badgeBorder}`}>
+              {/* 屬性色標 */}
+              <span className={`font-mono text-[11px] font-semibold px-2 py-0.5 rounded-full border ${meta.badgeBg} ${meta.badgeText} ${meta.badgeBorder}`}>
                 {meta.name}
               </span>
 
+              {/* 尺寸標籤 */}
               {spot.size && spot.size !== 'normal' && (
-                <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded-full bg-md-surface-container-high text-md-on-surface border border-md-outline-variant/40">
+                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-zinc-900 text-zinc-200 border border-zinc-800 font-bold">
                   {spot.size === 'giant' ? '巨大' : '大'}
                 </span>
               )}
-
-              <h3 className="text-sm font-bold truncate text-md-on-surface">
-                {spot.name}
-              </h3>
             </div>
 
-            {/* 限定派遣皮克敏提示（元素菇專屬） */}
+            <h3 className="font-display text-base font-bold tracking-tight text-white truncate">
+              {spot.name}
+            </h3>
+
+            {/* 限定派遣皮克敏提醒（元素菇專屬） */}
             {meta.dispatchRule && (
-              <div className="inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-lg bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 mb-1">
-                <span>⚠️ 限定：</span>
-                <span>{meta.dispatchRule}</span>
+              <div className="mt-1.5 p-1.5 px-2 rounded-lg bg-zinc-900/90 border border-tactical-amber/30 flex items-start gap-1.5 shadow-inner">
+                <AlertTriangle size={13} className="text-tactical-amber flex-shrink-0 mt-0.5" />
+                <p className="font-mono text-[11px] text-tactical-amber leading-tight">
+                  <span className="font-bold">限定：{meta.dispatchRule}</span>
+                </p>
               </div>
             )}
 
             {spot.notes && (
-              <p className="text-xs truncate text-md-on-surface-variant">
+              <p className="font-mono text-[11px] text-zinc-400 truncate mt-1">
                 {spot.notes}
               </p>
             )}
           </div>
 
           {/* 更多功能選單 */}
-          <div className="relative">
+          <div className="relative flex-shrink-0">
             <button
+              type="button"
               onClick={() => setShowMenu(!showMenu)}
-              className="p-1 rounded-xl text-md-on-surface-variant hover:text-md-on-surface hover:bg-md-surface-variant transition-colors"
-              aria-label="選單"
+              className="w-8 h-8 rounded-full flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
+              aria-label="選項選單"
             >
               <MoreVertical size={16} />
             </button>
 
             {showMenu && (
-              <div className="absolute right-0 mt-1 w-32 rounded-2xl border border-md-outline-variant/60 bg-md-surface-container-high text-md-on-surface shadow-2xl py-1.5 z-20 text-xs">
+              <div className="absolute right-0 mt-1 w-32 rounded-xl border border-tactical-border bg-zinc-900 text-white shadow-2xl py-1 z-30 font-mono text-xs">
                 <button
+                  type="button"
                   onClick={() => {
                     setShowMenu(false);
                     onEditSpot(spot);
                   }}
-                  className="w-full text-left px-3.5 py-2 hover:bg-md-surface-variant flex items-center gap-2"
+                  className="w-full text-left px-3 py-1.5 hover:bg-zinc-800 flex items-center gap-2 text-zinc-200"
                 >
-                  <Edit2 size={13} className="text-md-outline" />
+                  <Edit2 size={13} className="text-zinc-400" />
                   <span>編輯點位</span>
                 </button>
                 <button
+                  type="button"
                   onClick={() => {
                     setShowMenu(false);
                     handleReset();
                   }}
-                  className="w-full text-left px-3.5 py-2 hover:bg-md-surface-variant flex items-center gap-2"
+                  className="w-full text-left px-3 py-1.5 hover:bg-zinc-800 flex items-center gap-2 text-zinc-200"
                 >
-                  <RefreshCw size={13} className="text-md-outline" />
+                  <RefreshCw size={13} className="text-zinc-400" />
                   <span>重設狀態</span>
                 </button>
                 <button
+                  type="button"
                   onClick={() => {
                     setShowMenu(false);
                     onDeleteSpot(spot.id);
                   }}
-                  className="w-full text-left px-3.5 py-2 text-md-error hover:bg-md-error-container/20 flex items-center gap-2"
+                  className="w-full text-left px-3 py-1.5 hover:bg-zinc-800 flex items-center gap-2 text-tactical-crimson"
                 >
                   <Trash2 size={13} />
                   <span>刪除點位</span>
@@ -219,153 +230,192 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
           </div>
         </div>
 
-        {/* 狀態展示區 */}
-        <div className="my-3 py-2.5 px-3.5 rounded-2xl border border-md-outline-variant/40 bg-md-surface-container-highest/60 flex items-center justify-between">
+        {/* 內凹感應井（Recessed Sensor Well） */}
+        <div className="rounded-xl bg-tactical-well border border-tactical-border/60 p-3.5 flex flex-col gap-2 shadow-inner relative">
           {isReady ? (
-            <div className="flex items-center gap-2 w-full justify-between">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 size={22} className="text-md-primary animate-pulse" />
-                <div>
-                  <div className="text-sm font-bold text-md-on-primary-container">已重生出現！</div>
-                  <div className="text-[11px] opacity-80">可立即派兵進攻</div>
+            /* 已重生出現狀態 */
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-9 h-9 rounded-full bg-tactical-green flex items-center justify-center text-black shadow-md flex-shrink-0">
+                  <CheckCircle2 size={20} strokeWidth={2.5} />
+                </div>
+                <div className="flex flex-col min-w-0">
+                  <span className="font-display text-sm font-bold text-tactical-green">
+                    已重生出現！
+                  </span>
+                  <span className="font-mono text-[10px] text-zinc-400 truncate">
+                    可立即派兵進攻 · 搶先入隊
+                  </span>
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => handleStartCooldown(5)}
-                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-md-primary text-md-on-primary hover:opacity-90 shadow-sm transition-opacity"
+                className="px-3 py-1.5 rounded-lg bg-tactical-green hover:bg-tactical-green/90 text-black font-display text-xs font-bold shadow-[0_0_12px_rgba(134,219,112,0.35)] transition-all flex-shrink-0"
               >
                 打完 +5m
               </button>
             </div>
           ) : isCooldown ? (
-            <div className="w-full">
-              <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
-                <div className="flex items-center gap-1.5 text-xs text-amber-500 font-semibold">
-                  <Clock size={14} className="animate-spin-slow" />
+            /* 5 分鐘重生倒數狀態 */
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center justify-between gap-1">
+                <div className="flex items-center gap-1.5 text-tactical-cyan font-mono text-xs">
+                  <Hourglass size={14} className="animate-spin-slow" />
                   <span>5 分鐘重生倒數中</span>
+                </div>
+                {isApproaching ? (
+                  <span className="px-1.5 py-0.5 rounded-full bg-tactical-amber/20 text-tactical-amber font-mono text-[10px] font-semibold flex items-center gap-1 border border-tactical-amber/40 animate-pulse">
+                    <span className="w-1.5 h-1.5 rounded-full bg-tactical-amber"></span>
+                    <span>即將出現 (1~3分)</span>
+                  </span>
+                ) : (
+                  <span className="font-mono text-[10px] text-zinc-400">
+                    預計 {formatTargetClock(spot.cooldownEndTime!)} 重生
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-baseline justify-between mt-1">
+                <div className="flex items-baseline gap-2">
+                  <span
+                    className={`font-mono text-2xl sm:text-3xl font-extrabold tracking-tight ${
+                      isApproaching
+                        ? 'text-tactical-amber drop-shadow-[0_0_8px_rgba(255,186,39,0.5)]'
+                        : 'text-tactical-cyan drop-shadow-[0_0_8px_rgba(148,204,255,0.4)]'
+                    }`}
+                  >
+                    {formatRemaining(remainingMs)}
+                  </span>
                   {isApproaching && (
-                    <span className="flex items-center gap-0.5 text-[10px] px-1.5 py-0.2 bg-amber-500/20 text-amber-400 rounded-full border border-amber-500/40 animate-pulse">
-                      <AlertCircle size={10} />
-                      <span>即將出現 (1~3分)</span>
+                    <span className="font-mono text-[10px] text-zinc-400">
+                      預計 {formatTargetClock(spot.cooldownEndTime!)}
                     </span>
                   )}
                 </div>
-                <div className="text-[11px] text-md-on-surface-variant">
-                  預計 {formatTargetClock(spot.cooldownEndTime!)} 重生
-                </div>
-              </div>
-              <div className="flex items-baseline justify-between">
-                <span className={`text-2xl font-black font-mono tracking-tight ${isApproaching ? 'text-amber-500 animate-pulse' : 'text-md-primary'}`}>
-                  {formatRemaining(remainingMs)}
-                </span>
 
-                {/* iOS 設備專屬捷徑按鈕 */}
-                {isAppleDevice && (
-                  <div className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-mono text-[11px] text-tactical-green bg-tactical-green/15 px-1.5 py-0.5 rounded border border-tactical-green/30">
+                    {progressPercent.toFixed(1)}%
+                  </span>
+                  {isAppleDevice && (
                     <button
+                      type="button"
                       onClick={handleTriggerShortcut}
-                      className="flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-lg font-bold bg-md-secondary-container text-md-on-secondary-container border border-md-secondary/30 hover:opacity-90 transition-opacity shadow-sm"
-                      title="呼叫 iOS 捷徑開始原生時鐘倒數"
+                      className="flex items-center gap-1 px-2 py-0.5 rounded font-mono text-[10px] font-bold bg-tactical-moss border border-tactical-border text-tactical-green hover:bg-zinc-800 transition-colors"
+                      title="呼叫 iOS 捷徑開始計時"
                     >
-                      <Zap size={12} className="text-md-primary" />
+                      <Zap size={11} className="text-tactical-green" />
                       <span>捷徑計時</span>
                     </button>
-                    {onOpenShortcutHelp && (
-                      <button
-                        onClick={onOpenShortcutHelp}
-                        className="p-1 text-md-outline hover:text-md-primary transition-colors"
-                        title="查看 iOS 捷徑設定教學"
-                      >
-                        <HelpCircle size={13} />
-                      </button>
-                    )}
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-              {/* 倒數進度條 */}
-              <div className="w-full h-1.5 rounded-full mt-2 overflow-hidden bg-md-surface-container">
+
+              {/* 髮絲進度條（Hairline Progress Line） */}
+              <div className="w-full h-1.5 rounded-full bg-zinc-900 overflow-hidden mt-1">
                 <div
-                  className="h-full bg-md-primary transition-all duration-1000"
+                  className="h-full rounded-full bg-tactical-green shadow-[0_0_8px_rgba(134,219,112,0.8)] transition-all duration-500"
                   style={{ width: `${progressPercent}%` }}
                 />
               </div>
             </div>
           ) : isBattling ? (
-            <div className="w-full">
-              <div className="flex items-center justify-between mb-1">
-                <div className="flex items-center gap-1.5 text-xs text-md-tertiary font-semibold">
-                  <Swords size={14} />
+            /* 戰鬥中狀態 */
+            <div className="flex flex-col gap-1.5">
+              <div className="flex items-center justify-between gap-1">
+                <div className="flex items-center gap-1.5 text-tactical-amber font-mono text-xs">
+                  <Swords size={14} className="animate-pulse" />
                   <span>正在戰鬥中</span>
                 </div>
-                <div className="text-[11px] text-md-on-surface-variant">
+                <span className="font-mono text-[10px] text-zinc-400">
                   預計 {formatTargetClock(spot.battleEndTime!)} 結束
-                </div>
+                </span>
               </div>
-              <div className="flex items-baseline justify-between">
-                <span className="text-2xl font-black font-mono tracking-tight text-md-tertiary">
+
+              <div className="flex items-baseline justify-between mt-1">
+                <span className="font-mono text-2xl sm:text-3xl font-extrabold text-tactical-amber tracking-tight drop-shadow-[0_0_8px_rgba(255,186,39,0.35)]">
                   {formatRemaining(remainingMs)}
                 </span>
+
                 <div className="flex items-center gap-1.5">
                   {isAppleDevice && (
                     <button
+                      type="button"
                       onClick={handleTriggerShortcut}
-                      className="flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-lg font-bold bg-md-secondary-container text-md-on-secondary-container border border-md-secondary/30 hover:opacity-90 transition-opacity shadow-sm"
-                      title="呼叫 iOS 捷徑開始原生時鐘倒數"
+                      className="flex items-center gap-1 px-2 py-0.5 rounded font-mono text-[10px] font-bold bg-tactical-moss border border-tactical-border text-tactical-amber hover:bg-zinc-800 transition-colors"
+                      title="呼叫 iOS 捷徑開始計時"
                     >
-                      <Zap size={12} className="text-md-primary" />
+                      <Zap size={11} className="text-tactical-amber" />
                       <span>捷徑計時</span>
                     </button>
                   )}
                   <button
+                    type="button"
                     onClick={() => handleStartCooldown(5)}
-                    className="px-2.5 py-1 rounded-lg text-[11px] border border-md-outline-variant bg-md-surface text-md-on-surface hover:bg-md-surface-container transition-colors"
+                    className="px-2 py-0.5 rounded bg-zinc-900 border border-tactical-border text-zinc-200 hover:bg-zinc-800 font-mono text-[11px] transition-colors"
                     title="提早擊破並開始 5 分鐘重生冷卻"
                   >
                     提早打完
                   </button>
                 </div>
               </div>
+
+              {/* 戰鬥進度條 */}
+              <div className="w-full h-1.5 rounded-full bg-zinc-900 overflow-hidden mt-1">
+                <div
+                  className="h-full rounded-full bg-tactical-amber shadow-[0_0_8px_rgba(255,186,39,0.7)] transition-all duration-500"
+                  style={{ width: `${Math.min(100, Math.max(0, 100 - (remainingMs / (60 * 60 * 1000)) * 100))}%` }}
+                />
+              </div>
             </div>
           ) : (
-            <div className="flex items-center justify-between w-full text-xs py-0.5 text-md-on-surface-variant">
-              <span>目前狀態：空閒中</span>
-              <span className="opacity-70">點擊下方啟動 5 分鐘重生倒數</span>
+            /* 待命閒置狀態 */
+            <div className="flex items-center justify-between text-xs py-1 text-zinc-400 font-mono">
+              <span className="flex items-center gap-1.5">
+                <Clock size={13} />
+                <span>目前狀態：待命中</span>
+              </span>
+              <span className="text-[11px] text-zinc-500">點擊下方按鈕開始記錄</span>
             </div>
           )}
         </div>
       </div>
 
-      {/* 快捷操作按鈕列 */}
-      <div className="grid grid-cols-2 gap-2 mt-2">
+      {/* 底部快速操作網格 */}
+      <div className="grid grid-cols-2 gap-2 pt-3">
         <button
+          type="button"
           onClick={() => handleStartCooldown(5)}
-          className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-2xl border border-md-outline-variant/60 bg-md-surface-container-high hover:bg-md-surface-variant text-md-on-surface text-xs font-semibold transition-all shadow-sm active:scale-[0.98]"
+          className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-tactical-border text-zinc-200 font-mono text-xs transition-all active:scale-95 shadow-sm"
         >
-          <Clock size={14} className="text-md-primary" />
+          <Clock size={13} className="text-tactical-green" />
           <span>剛打完 (5分)</span>
         </button>
 
         <button
+          type="button"
           onClick={() => setShowCustomBattleInput(!showCustomBattleInput)}
-          className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-2xl border border-md-outline-variant/60 bg-md-surface-container-high hover:bg-md-surface-variant text-md-on-surface text-xs font-semibold transition-all shadow-sm active:scale-[0.98]"
+          className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-tactical-border text-zinc-200 font-mono text-xs transition-all active:scale-95 shadow-sm"
         >
-          <Swords size={14} className="text-md-tertiary" />
+          <Swords size={13} className="text-tactical-amber" />
           <span>正在打 (自訂)</span>
         </button>
       </div>
 
       {/* 展開之戰鬥時間自訂區塊 */}
       {showCustomBattleInput && (
-        <div className="mt-2.5 p-3 rounded-2xl border border-md-outline-variant/60 bg-md-surface-container-high text-xs">
-          <div className="mb-2 font-medium text-md-on-surface-variant">
+        <div className="mt-2.5 p-3 rounded-xl bg-zinc-900 border border-tactical-border text-xs font-mono">
+          <div className="mb-2 text-zinc-400">
             設定預計戰鬥所需時間：
           </div>
           <div className="grid grid-cols-4 gap-1.5 mb-2">
             {[15, 30, 60, 120].map((mins) => (
               <button
                 key={mins}
+                type="button"
                 onClick={() => handleStartBattling(mins)}
-                className="py-1 px-1.5 rounded-xl border border-md-outline-variant bg-md-surface text-md-on-surface hover:bg-md-surface-container font-mono text-center transition-colors"
+                className="py-1 px-1 rounded-lg border border-tactical-border bg-black text-zinc-200 hover:bg-zinc-800 text-center transition-colors"
               >
                 {mins >= 60 ? `${mins / 60} 小時` : `${mins} 分鐘`}
               </button>
@@ -379,19 +429,20 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
               max="1440"
               value={customMinutes}
               onChange={(e) => setCustomMinutes(Math.max(1, parseInt(e.target.value) || 1))}
-              className="flex-1 rounded-xl px-3 py-1 font-mono text-xs focus:outline-none border border-md-outline-variant bg-md-surface text-md-on-surface focus:border-md-primary"
+              className="flex-1 rounded-lg px-2.5 py-1 font-mono text-xs bg-black border border-tactical-border text-white focus:outline-none focus:border-tactical-green"
               placeholder="分鐘"
             />
-            <span className="text-md-on-surface-variant">分鐘</span>
+            <span className="text-zinc-400">分鐘</span>
             <button
+              type="button"
               onClick={() => handleStartBattling(customMinutes)}
-              className="px-3.5 py-1 bg-md-primary hover:opacity-90 text-md-on-primary rounded-xl font-bold text-xs transition-opacity shadow-sm"
+              className="px-3 py-1 bg-tactical-green text-black rounded-lg font-bold text-xs transition-transform active:scale-95 shadow-sm"
             >
               啟動
             </button>
           </div>
         </div>
       )}
-    </div>
+    </article>
   );
 };
