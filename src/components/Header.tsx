@@ -30,40 +30,24 @@ export const Header: React.FC<HeaderProps> = ({
   const weekendActive = isWeekend();
 
   return (
-    <header
-      className={`sticky top-0 z-30 border-b backdrop-blur-md transition-colors ${
-        isLight
-          ? 'bg-white/95 border-slate-200 text-slate-900 shadow-sm'
-          : 'bg-black/95 border-oled-border text-neutral-100'
-      } px-3 py-2.5`}
-    >
-      <div className="max-w-xl mx-auto space-y-2">
+    <header className="sticky top-0 z-30 border-b border-md-outline-variant/50 bg-md-surface-container/90 backdrop-blur-md transition-colors px-3 py-2.5">
+      <div className="max-w-6xl mx-auto space-y-2">
         {/* 第一列：標題列與功能按鈕群 */}
         <div className="flex items-center justify-between gap-2">
           {/* 左側 Logo 與標題 */}
           <div className="flex items-center gap-2 min-w-0 flex-shrink">
-            <div
-              className={`w-8 h-8 rounded-xl flex items-center justify-center text-lg flex-shrink-0 border shadow-inner ${
-                isLight ? 'bg-slate-100 border-slate-200' : 'bg-neutral-900 border-neutral-800'
-              }`}
-            >
+            <div className="w-8 h-8 rounded-xl bg-md-primary flex items-center justify-center text-md-on-primary text-base font-black shadow-sm flex-shrink-0">
               🍄
             </div>
             <div className="min-w-0 flex items-center gap-1.5 flex-wrap">
-              <h1 className="text-sm font-bold tracking-tight whitespace-nowrap truncate">
+              <h1 className="text-sm font-bold tracking-tight text-md-on-surface whitespace-nowrap truncate">
                 皮克敏蘑菇追蹤
               </h1>
-              <span
-                className={`text-[10px] uppercase font-mono px-1.5 py-0.5 rounded border flex-shrink-0 ${
-                  isLight
-                    ? 'bg-amber-100 text-amber-800 border-amber-300'
-                    : 'bg-neutral-900 text-emerald-400 border-neutral-800'
-                }`}
-              >
+              <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded-full bg-md-secondary-container text-md-on-secondary-container border border-md-outline-variant/60 flex-shrink-0">
                 {isLight ? '明亮' : 'OLED'}
               </span>
               {weekendActive && (
-                <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-400 border border-rose-500/40 flex items-center gap-0.5">
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-md-error-container text-md-on-error-container border border-md-error/30 flex items-center gap-0.5">
                   <Sparkles size={10} />
                   <span>週末巨型菇</span>
                 </span>
@@ -76,12 +60,8 @@ export const Header: React.FC<HeaderProps> = ({
             {/* 主題切換按鈕 */}
             <button
               onClick={onToggleTheme}
-              title={isLight ? '切換為 OLED 純黑省電主題' : '切換為明亮主題'}
-              className={`p-1.5 rounded-lg border transition-colors ${
-                isLight
-                  ? 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200'
-                  : 'bg-neutral-950 border-neutral-800 text-amber-400 hover:border-neutral-700'
-              }`}
+              title={isLight ? '切換為 OLED 純黑深色模式' : '切換為明亮模式'}
+              className="p-1.5 rounded-xl border border-md-outline-variant bg-md-surface-container-high text-md-on-surface hover:bg-md-surface-variant transition-colors"
               aria-label="切換主題"
             >
               {isLight ? <Moon size={16} /> : <Sun size={16} />}
@@ -91,14 +71,10 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={onRequestNotificationPermission}
               title={notificationsEnabled ? '推播通知已啟用（含 1~3 分鐘提前提醒）' : '點擊啟用通知'}
-              className={`p-1.5 rounded-lg border transition-colors ${
+              className={`p-1.5 rounded-xl border transition-colors ${
                 notificationsEnabled
-                  ? isLight
-                    ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
-                    : 'bg-neutral-950 border-neutral-800 text-emerald-400 hover:border-emerald-500/50'
-                  : isLight
-                  ? 'bg-slate-100 border-slate-300 text-slate-400'
-                  : 'bg-neutral-950 border-amber-900/60 text-amber-400'
+                  ? 'bg-md-primary-container text-md-on-primary-container border-md-primary/40'
+                  : 'bg-md-surface-container-high text-md-on-surface-variant border-md-outline-variant'
               }`}
               aria-label="切換推播通知"
             >
@@ -109,25 +85,17 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={onOpenOledHud}
               title="開啟微光省電常亮 HUD"
-              className={`flex items-center gap-1 px-2 py-1.5 rounded-lg border text-xs font-medium transition-colors ${
-                isLight
-                  ? 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200'
-                  : 'bg-neutral-950 border-neutral-800 text-indigo-300 hover:text-white'
-              }`}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-md-outline-variant bg-md-surface-container-high text-md-on-surface hover:bg-md-surface-variant transition-colors text-xs font-semibold"
             >
-              <Moon size={13} className={isLight ? 'text-indigo-600' : 'text-indigo-400'} />
+              <Moon size={13} className="text-md-tertiary" />
               <span>HUD</span>
             </button>
 
             {/* 指南手冊按鈕 */}
             <button
               onClick={onOpenGuide}
-              title="查看三大類蘑菇規則與使用說明"
-              className={`p-1.5 rounded-lg border transition-colors ${
-                isLight
-                  ? 'bg-slate-100 border-slate-300 text-slate-700 hover:bg-slate-200'
-                  : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:text-neutral-200'
-              }`}
+              title="查看說明指南與平台教學"
+              className="p-1.5 rounded-xl border border-md-outline-variant bg-md-surface-container-high text-md-on-surface hover:bg-md-surface-variant transition-colors"
               aria-label="查看指南"
             >
               <BookOpen size={16} />
@@ -137,7 +105,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={onOpenNewModal}
               title="新增蘑菇地點"
-              className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-black font-bold text-xs transition-colors shadow-sm whitespace-nowrap"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-md-primary hover:opacity-90 text-md-on-primary font-bold text-xs transition-opacity shadow-sm whitespace-nowrap"
             >
               <Plus size={14} strokeWidth={2.5} />
               <span>新增</span>
@@ -145,15 +113,11 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
 
-        {/* 第二列：今日額度控制條（含跨日自動重置標示） */}
-        <div
-          className={`flex items-center justify-between gap-2 px-3 py-1.5 rounded-xl border text-xs ${
-            isLight ? 'bg-slate-100/80 border-slate-200' : 'bg-neutral-950/90 border-neutral-900'
-          }`}
-        >
+        {/* 第二列：今日額度狀態條 */}
+        <div className="flex items-center justify-between gap-2 px-3.5 py-1.5 rounded-2xl border border-md-outline-variant/60 bg-md-surface-container-high text-xs">
           {/* 額度燈號與剩餘文字 */}
           <div className="flex items-center gap-2 flex-wrap min-w-0">
-            <span className={`text-[11px] whitespace-nowrap font-medium ${isLight ? 'text-slate-600' : 'text-neutral-400'}`}>
+            <span className="text-[11px] whitespace-nowrap font-medium text-md-on-surface-variant">
               今日額度
             </span>
             <div className="flex items-center gap-1">
@@ -164,12 +128,8 @@ export const Header: React.FC<HeaderProps> = ({
                     key={slot}
                     className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
                       isActive
-                        ? isLight
-                          ? 'bg-emerald-500 text-white shadow-sm'
-                          : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-[0_0_8px_rgba(16,185,129,0.3)]'
-                        : isLight
-                        ? 'bg-slate-200 text-slate-400'
-                        : 'bg-neutral-900 text-neutral-600 border border-neutral-800'
+                        ? 'bg-md-primary text-md-on-primary shadow-sm'
+                        : 'bg-md-surface-container text-md-on-surface-variant/40 border border-md-outline-variant'
                     }`}
                   >
                     {slot}
@@ -177,10 +137,10 @@ export const Header: React.FC<HeaderProps> = ({
                 );
               })}
             </div>
-            <span className={`text-[11px] whitespace-nowrap ${isLight ? 'text-slate-500' : 'text-neutral-400'}`}>
-              剩餘 <strong className={isLight ? 'text-slate-800' : 'text-neutral-200'}>{quota.remaining}</strong>/3 次
+            <span className="text-[11px] whitespace-nowrap text-md-on-surface">
+              剩餘 <strong>{quota.remaining}</strong>/3 次
             </span>
-            <span className={`text-[10px] hidden sm:inline ${isLight ? 'text-slate-400' : 'text-neutral-500'}`}>
+            <span className="text-[10px] text-md-on-surface-variant/80 hidden sm:inline">
               (跨日 00:00 自動重置)
             </span>
           </div>
@@ -190,22 +150,14 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={() => onUpdateQuota(-1)}
               disabled={quota.remaining <= 0}
-              className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-colors whitespace-nowrap disabled:opacity-30 ${
-                isLight
-                  ? 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
-                  : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:bg-neutral-800'
-              }`}
+              className="px-2.5 py-0.5 rounded-lg text-[11px] font-medium border border-md-outline-variant bg-md-surface hover:bg-md-surface-container text-md-on-surface transition-colors whitespace-nowrap disabled:opacity-30"
             >
               -1 次
             </button>
             <button
               onClick={() => onUpdateQuota(1)}
               disabled={quota.remaining >= 3}
-              className={`px-2 py-0.5 rounded text-[11px] font-medium border transition-colors whitespace-nowrap disabled:opacity-30 ${
-                isLight
-                  ? 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'
-                  : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:bg-neutral-800'
-              }`}
+              className="px-2.5 py-0.5 rounded-lg text-[11px] font-medium border border-md-outline-variant bg-md-surface hover:bg-md-surface-container text-md-on-surface transition-colors whitespace-nowrap disabled:opacity-30"
             >
               +1 恢復
             </button>

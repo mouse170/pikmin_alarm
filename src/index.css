@@ -3,34 +3,151 @@
 @tailwind utilities;
 
 :root {
-  color-scheme: dark;
+  /* Material Theme Builder Seed: #3AC200 (皮克敏草綠) */
+  --md-source-color: #3AC200;
+
+  /* ===== Light Scheme (明亮模式) ===== */
+  --md-sys-color-primary: #2B6B00;
+  --md-sys-color-on-primary: #FFFFFF;
+  --md-sys-color-primary-container: #82FA43;
+  --md-sys-color-on-primary-container: #082100;
+
+  --md-sys-color-secondary: #54624D;
+  --md-sys-color-on-secondary: #FFFFFF;
+  --md-sys-color-secondary-container: #D7E7CD;
+  --md-sys-color-on-secondary-container: #121F0E;
+
+  --md-sys-color-tertiary: #386666;
+  --md-sys-color-on-tertiary: #FFFFFF;
+  --md-sys-color-tertiary-container: #BCEBEB;
+  --md-sys-color-on-tertiary-container: #002020;
+
+  --md-sys-color-error: #BA1A1A;
+  --md-sys-color-on-error: #FFFFFF;
+  --md-sys-color-error-container: #FFDAD6;
+  --md-sys-color-on-error-container: #410002;
+
+  --md-sys-color-background: #F8FAF0;
+  --md-sys-color-on-background: #191D16;
+  --md-sys-color-surface: #F8FAF0;
+  --md-sys-color-on-surface: #191D16;
+  --md-sys-color-surface-variant: #DFE4D6;
+  --md-sys-color-on-surface-variant: #43483E;
+  --md-sys-color-surface-container-lowest: #FFFFFF;
+  --md-sys-color-surface-container-low: #F2F5EA;
+  --md-sys-color-surface-container: #ECEFE4;
+  --md-sys-color-surface-container-high: #E6E9DE;
+  --md-sys-color-surface-container-highest: #E1E4D9;
+
+  --md-sys-color-outline: #73796D;
+  --md-sys-color-outline-variant: #C3C8BA;
+}
+
+/* 自動適應系統深色模式 */
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --md-sys-color-primary: #67DC27;
+    --md-sys-color-on-primary: #133800;
+    --md-sys-color-primary-container: #1F5100;
+    --md-sys-color-on-primary-container: #82FA43;
+
+    --md-sys-color-secondary: #BBCBB1;
+    --md-sys-color-on-secondary: #273421;
+    --md-sys-color-secondary-container: #3D4A36;
+    --md-sys-color-on-secondary-container: #D7E7CD;
+
+    --md-sys-color-tertiary: #A0CFCF;
+    --md-sys-color-on-tertiary: #003737;
+    --md-sys-color-tertiary-container: #1F4E4E;
+    --md-sys-color-on-tertiary-container: #BCEBEB;
+
+    --md-sys-color-error: #FFB4AB;
+    --md-sys-color-on-error: #690005;
+    --md-sys-color-error-container: #93000A;
+    --md-sys-color-on-error-container: #FFDAD6;
+
+    /* 深色背景兼顧 OLED 純黑節能效果 */
+    --md-sys-color-background: #000000;
+    --md-sys-color-on-background: #E1E4D9;
+    --md-sys-color-surface: #0A0D07;
+    --md-sys-color-on-surface: #E1E4D9;
+    --md-sys-color-surface-variant: #282C24;
+    --md-sys-color-on-surface-variant: #C3C8BA;
+    --md-sys-color-surface-container-lowest: #000000;
+    --md-sys-color-surface-container-low: #0C0F08;
+    --md-sys-color-surface-container: #12160E;
+    --md-sys-color-surface-container-high: #1B2016;
+    --md-sys-color-surface-container-highest: #252B1F;
+
+    --md-sys-color-outline: #8D9386;
+    --md-sys-color-outline-variant: #2E332A;
+  }
+}
+
+/* 明確指定 .dark 類別 */
+.dark {
+  --md-sys-color-primary: #67DC27;
+  --md-sys-color-on-primary: #133800;
+  --md-sys-color-primary-container: #1F5100;
+  --md-sys-color-on-primary-container: #82FA43;
+
+  --md-sys-color-secondary: #BBCBB1;
+  --md-sys-color-on-secondary: #273421;
+  --md-sys-color-secondary-container: #3D4A36;
+  --md-sys-color-on-secondary-container: #D7E7CD;
+
+  --md-sys-color-tertiary: #A0CFCF;
+  --md-sys-color-on-tertiary: #003737;
+  --md-sys-color-tertiary-container: #1F4E4E;
+  --md-sys-color-on-tertiary-container: #BCEBEB;
+
+  --md-sys-color-error: #FFB4AB;
+  --md-sys-color-on-error: #690005;
+  --md-sys-color-error-container: #93000A;
+  --md-sys-color-on-error-container: #FFDAD6;
+
+  --md-sys-color-background: #000000;
+  --md-sys-color-on-background: #E1E4D9;
+  --md-sys-color-surface: #0A0D07;
+  --md-sys-color-on-surface: #E1E4D9;
+  --md-sys-color-surface-variant: #282C24;
+  --md-sys-color-on-surface-variant: #C3C8BA;
+  --md-sys-color-surface-container-lowest: #000000;
+  --md-sys-color-surface-container-low: #0C0F08;
+  --md-sys-color-surface-container: #12160E;
+  --md-sys-color-surface-container-high: #1B2016;
+  --md-sys-color-surface-container-highest: #252B1F;
+
+  --md-sys-color-outline: #8D9386;
+  --md-sys-color-outline-variant: #2E332A;
 }
 
 body {
-  background-color: #000000;
-  color: #f3f4f6;
+  background-color: var(--md-sys-color-background);
+  color: var(--md-sys-color-on-background);
   margin: 0;
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   -webkit-font-smoothing: antialiased;
   -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* 隱藏原生滾動條維持乾淨外觀 */
+/* 隱藏滾動條保持精緻介面 */
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #000000;
+  background: var(--md-sys-color-surface-container-lowest);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #262626;
+  background: var(--md-sys-color-outline-variant);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #404040;
+  background: var(--md-sys-color-outline);
 }
