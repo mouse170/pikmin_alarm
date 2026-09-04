@@ -123,14 +123,24 @@
 }
 
 body {
-  background-color: var(--md-sys-color-background);
-  color: var(--md-sys-color-on-background);
   margin: 0;
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   -webkit-font-smoothing: antialiased;
   -webkit-touch-callout: none;
   -webkit-tap-highlight-color: transparent;
-  transition: background-color 0.2s ease, color 0.2s ease;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+html.light body {
+  background-color: #F4F8F1;
+  background-image: radial-gradient(circle at 15% 10%, rgba(220, 245, 214, 0.6) 0%, transparent 45%), radial-gradient(circle at 85% 60%, rgba(254, 243, 199, 0.45) 0%, transparent 40%);
+  color: #182B1B;
+}
+
+html.dark body {
+  background-color: #000000;
+  background-image: none;
+  color: #dde5db;
 }
 
 /* 隱藏滾動條保持精緻介面 */
@@ -140,14 +150,14 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--md-sys-color-surface-container-lowest);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--md-sys-color-outline-variant);
+  background: rgba(120, 120, 120, 0.2);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--md-sys-color-outline);
+  background: rgba(120, 120, 120, 0.4);
 }

@@ -309,9 +309,10 @@ export const App: React.FC = () => {
 
   const readyCount = spots.filter((s) => s.status === 'ready').length;
   const activeCount = spots.filter((s) => s.status === 'cooldown' || s.status === 'battling').length;
+  const isLight = theme === 'light';
 
   return (
-    <div className="min-h-screen flex flex-col bg-black text-zinc-100 transition-colors duration-200">
+    <div className={`min-h-screen flex flex-col transition-colors duration-300 ${isLight ? 'text-[#182B1B]' : 'bg-black text-zinc-100'}`}>
       {/* 頂部導航列與額度條 */}
       <Header
         quota={quota}
@@ -329,28 +330,54 @@ export const App: React.FC = () => {
 
       {/* 主工作區 */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-3 sm:px-4 py-4 sm:py-5 space-y-4 sm:space-y-5">
-        {/* 營運概覽戰術控制艙（Operational Overview Control Deck） */}
+        {/* 營運概覽戰術/花園控制艙（Operational Overview Control Deck） */}
         <section className="flex flex-col gap-3">
-          {/* 頂部營運橫幅 */}
-          <div className="relative overflow-hidden rounded-2xl bg-zinc-950 border border-tactical-border/70 p-4 sm:p-5 shadow-xl">
-            <div className="absolute -right-12 -bottom-12 w-64 h-64 rounded-full bg-tactical-green/5 blur-3xl pointer-events-none" />
+          {/* 頂部營運橫幅（自適應深淺主題） */}
+          <div
+            className={`relative overflow-hidden rounded-2xl p-4 sm:p-5 transition-all duration-300 ${
+              isLight
+                ? 'bg-white border border-[#D6E5D0] shadow-[0_10px_30px_rgba(46,155,15,0.06)]'
+                : 'bg-zinc-950 border border-tactical-border/70 shadow-xl'
+            }`}
+          >
+            <div
+              className={`absolute -right-12 -bottom-12 w-64 h-64 rounded-full blur-3xl pointer-events-none transition-opacity duration-300 ${
+                isLight ? 'bg-gradient-to-br from-[#2E9B0F]/10 to-[#F59E0B]/10' : 'bg-tactical-green/5'
+              }`}
+            />
             <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4 relative z-10">
               {/* 左側：品牌標誌與 Token 識別 */}
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-tactical-green/15 flex items-center justify-center text-tactical-green shadow-md flex-shrink-0 ring-1 ring-tactical-green/30">
-                  <Sprout size={24} className="text-tactical-green" />
+                <div
+                  className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center shadow-sm flex-shrink-0 transition-all duration-300 hover:scale-105 ${
+                    isLight
+                      ? 'bg-gradient-to-br from-[#E8F8E2] to-[#D5F0CD] border border-[#C5E8BA] text-[#24800B] shadow-[#2E9B0F]/15'
+                      : 'bg-tactical-green/15 text-tactical-green ring-1 ring-tactical-green/30'
+                  }`}
+                >
+                  <Sprout size={24} className={isLight ? 'text-[#2E9B0F]' : 'text-tactical-green'} />
                 </div>
                 <div className="flex flex-col min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h1 className="font-display font-bold text-base sm:text-lg text-white tracking-tight">
-                      Material 3 營運監控儀表板
+                    <h1 className="font-display font-extrabold text-base sm:text-lg tracking-tight">
+                      {isLight ? '花園營運監控儀表板' : 'Material 3 營運監控儀表板'}
                     </h1>
-                    <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-tactical-moss border border-tactical-border text-tactical-green font-bold tracking-wider uppercase">
+                    <span
+                      className={`font-mono text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider transition-colors ${
+                        isLight
+                          ? 'bg-[#E5F5E0] border border-[#BEE7B4] text-[#1F7308]'
+                          : 'bg-tactical-moss border border-tactical-border text-tactical-green'
+                      }`}
+                    >
                       Seed: #3AC200
                     </span>
                   </div>
-                  <p className="font-mono text-xs text-zinc-400 flex items-center gap-1.5 mt-0.5">
-                    <Sparkles size={12} className="text-tactical-green" />
+                  <p
+                    className={`font-mono text-xs flex items-center gap-1.5 mt-0.5 ${
+                      isLight ? 'text-[#556B58]' : 'text-zinc-400'
+                    }`}
+                  >
+                    <Sparkles size={12} className={isLight ? 'text-[#F59E0B]' : 'text-tactical-green'} />
                     <span>皮克敏全天候戰術偵測 · 跨日 00:00 自動同步</span>
                   </p>
                 </div>
@@ -358,19 +385,57 @@ export const App: React.FC = () => {
 
               {/* 右側：狀態度量膠囊群 */}
               <div className="flex flex-wrap items-center gap-2 w-full xl:w-auto">
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-900 border border-tactical-border text-zinc-300 font-mono text-xs">
-                  <span className="text-zinc-400">總點位 :</span>
-                  <span className="font-display font-bold text-white text-sm">{spots.length}</span>
+                <div
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-mono text-xs shadow-sm transition-colors ${
+                    isLight
+                      ? 'bg-[#F4F8F1] border border-[#D6E5D0] text-[#182B1B]'
+                      : 'bg-zinc-900 border border-tactical-border text-zinc-300'
+                  }`}
+                >
+                  <span className={isLight ? 'text-[#556B58]' : 'text-zinc-400'}>總點位 :</span>
+                  <span className="font-display font-bold text-sm">{spots.length}</span>
                 </div>
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-900 border border-tactical-border text-zinc-300 font-mono text-xs">
-                  <span className="w-2 h-2 rounded-full bg-tactical-cyan animate-pulse" />
-                  <span className="text-zinc-400">5 分冷卻進行中 :</span>
-                  <span className="font-display font-bold text-tactical-cyan text-sm">{activeCount}</span>
+
+                <div
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-mono text-xs shadow-sm transition-colors ${
+                    isLight
+                      ? 'bg-[#FEF3C7] border border-[#FDE68A] text-[#92400E]'
+                      : 'bg-zinc-900 border border-tactical-border text-zinc-300'
+                  }`}
+                >
+                  <span
+                    className={`w-2 h-2 rounded-full animate-pulse ${
+                      isLight ? 'bg-[#D97706]' : 'bg-tactical-cyan'
+                    }`}
+                  />
+                  <span className={isLight ? 'text-[#92400E] font-medium' : 'text-zinc-400'}>
+                    5 分冷卻進行中 :
+                  </span>
+                  <span
+                    className={`font-display font-bold text-sm ${
+                      isLight ? 'text-[#B45309]' : 'text-tactical-cyan'
+                    }`}
+                  >
+                    {activeCount}
+                  </span>
                 </div>
-                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-tactical-green/15 border border-tactical-green/40 text-tactical-green font-mono text-xs shadow-sm">
-                  <CheckCircle2 size={14} strokeWidth={2.5} />
-                  <span className="text-zinc-300">已重生可進攻 :</span>
-                  <span className="font-display font-bold text-tactical-green text-sm">{readyCount}</span>
+
+                <div
+                  className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-mono text-xs shadow-sm transition-colors ${
+                    isLight
+                      ? 'bg-[#DCF5D6] border border-[#BCE7B4] text-[#18450c]'
+                      : 'bg-tactical-green/15 border border-tactical-green/40 text-tactical-green'
+                  }`}
+                >
+                  <CheckCircle2 size={15} strokeWidth={2.5} className={isLight ? 'text-[#2E9B0F]' : 'text-tactical-green'} />
+                  <span className={isLight ? 'text-[#18450c] font-bold' : 'text-zinc-300'}>已重生可進攻 :</span>
+                  <span
+                    className={`font-display font-extrabold text-sm ${
+                      isLight ? 'text-[#1F7308]' : 'text-tactical-green'
+                    }`}
+                  >
+                    {readyCount}
+                  </span>
                 </div>
               </div>
             </div>
@@ -378,43 +443,59 @@ export const App: React.FC = () => {
 
           {/* 快捷篩選標籤列與操作按鈕 */}
           <div className="flex flex-wrap items-center justify-between gap-2.5 pt-1">
-            <div className="flex items-center gap-1.5 p-1 rounded-full bg-zinc-950 border border-tactical-border/70 shadow-inner">
+            <div
+              className={`flex items-center gap-1.5 p-1 rounded-full border shadow-inner transition-colors ${
+                isLight ? 'bg-white border-[#D6E5D0]' : 'bg-zinc-950 border-tactical-border/70'
+              }`}
+            >
               <button
                 type="button"
                 onClick={() => setFilterMode('all')}
-                className={`px-3 py-1 rounded-full font-mono text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                className={`px-3.5 py-1 rounded-full font-mono text-xs font-bold transition-all duration-150 active:scale-95 flex items-center gap-1.5 ${
                   filterMode === 'all'
-                    ? 'bg-tactical-green text-black shadow-md'
+                    ? isLight
+                      ? 'bg-[#2E9B0F] text-white shadow-sm'
+                      : 'bg-tactical-green text-black shadow-md'
+                    : isLight
+                    ? 'text-[#556B58] hover:text-[#182B1B] hover:bg-[#F4F8F1]'
                     : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
                 }`}
               >
-                <span className={`w-1.5 h-1.5 rounded-full ${filterMode === 'all' ? 'bg-black' : 'bg-zinc-500'}`} />
+                <span className={`w-1.5 h-1.5 rounded-full ${filterMode === 'all' ? (isLight ? 'bg-white' : 'bg-black') : 'bg-zinc-400'}`} />
                 <span>全部 ({spots.length})</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setFilterMode('active')}
-                className={`px-3 py-1 rounded-full font-mono text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                className={`px-3.5 py-1 rounded-full font-mono text-xs font-bold transition-all duration-150 active:scale-95 flex items-center gap-1.5 ${
                   filterMode === 'active'
-                    ? 'bg-tactical-green text-black shadow-md'
+                    ? isLight
+                      ? 'bg-[#2E9B0F] text-white shadow-sm'
+                      : 'bg-tactical-green text-black shadow-md'
+                    : isLight
+                    ? 'text-[#556B58] hover:text-[#182B1B] hover:bg-[#F4F8F1]'
                     : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
                 }`}
               >
-                <Clock size={12} />
+                <Clock size={12} className={isLight && filterMode !== 'active' ? 'text-[#D97706]' : ''} />
                 <span>計時中 ({activeCount})</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setFilterMode('ready')}
-                className={`px-3 py-1 rounded-full font-mono text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                className={`px-3.5 py-1 rounded-full font-mono text-xs font-bold transition-all duration-150 active:scale-95 flex items-center gap-1.5 ${
                   filterMode === 'ready'
-                    ? 'bg-tactical-green text-black shadow-md'
+                    ? isLight
+                      ? 'bg-[#2E9B0F] text-white shadow-sm'
+                      : 'bg-tactical-green text-black shadow-md'
+                    : isLight
+                    ? 'text-[#556B58] hover:text-[#182B1B] hover:bg-[#F4F8F1]'
                     : 'text-zinc-400 hover:text-white hover:bg-zinc-900'
                 }`}
               >
-                <CheckCircle2 size={12} />
+                <CheckCircle2 size={12} className={isLight && filterMode !== 'ready' ? 'text-[#2E9B0F]' : ''} />
                 <span>已出現 ({readyCount})</span>
               </button>
             </div>
@@ -426,7 +507,11 @@ export const App: React.FC = () => {
                   setEditingSpot(null);
                   setIsNewModalOpen(true);
                 }}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-tactical-green text-black hover:bg-tactical-green/90 font-display text-xs font-bold shadow-[0_0_12px_rgba(134,219,112,0.3)] transition-transform active:scale-95"
+                className={`flex items-center gap-1 px-3.5 py-1.5 rounded-full font-display text-xs font-bold transition-all duration-150 hover:scale-105 active:scale-95 ${
+                  isLight
+                    ? 'bg-[#2E9B0F] text-white hover:bg-[#25820C] shadow-md shadow-[#2E9B0F]/25 hover:shadow-lg'
+                    : 'bg-tactical-green text-black hover:bg-tactical-green/90 shadow-[0_0_12px_rgba(134,219,112,0.3)]'
+                }`}
               >
                 <Plus size={14} strokeWidth={2.5} />
                 <span>新增點位</span>
@@ -435,7 +520,7 @@ export const App: React.FC = () => {
           </div>
         </section>
 
-        {/* 蘑菇卡片網格（手機 1 欄，平板 2 欄，桌面 3 欄） */}
+        {/* 蘑菇卡片網格（自適應手機單欄、平板雙欄、桌面三欄） */}
         {filteredSpots.length > 0 ? (
           <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             {filteredSpots.map((spot) => (
@@ -454,26 +539,44 @@ export const App: React.FC = () => {
             ))}
           </section>
         ) : (
-          <div className="py-14 text-center border border-dashed border-tactical-border/80 rounded-2xl p-6 bg-zinc-950">
-            <div className="w-12 h-12 rounded-xl bg-zinc-900 border border-tactical-border mx-auto flex items-center justify-center text-tactical-green mb-3">
+          <div
+            className={`py-14 text-center border border-dashed rounded-2xl p-6 transition-colors ${
+              isLight ? 'bg-white/80 border-[#D6E5D0]' : 'bg-zinc-950 border-tactical-border/80'
+            }`}
+          >
+            <div
+              className={`w-12 h-12 rounded-2xl mx-auto flex items-center justify-center mb-3 transition-colors ${
+                isLight
+                  ? 'bg-[#E8F8E2] border border-[#C5E8BA] text-[#24800B]'
+                  : 'bg-zinc-900 border border-tactical-border text-tactical-green'
+              }`}
+            >
               <Sprout size={24} />
             </div>
-            <div className="font-display text-base font-bold text-white">目前尚無符合條件的蘑菇點位</div>
-            <p className="font-mono text-xs mt-1 max-w-sm mx-auto text-zinc-400">
+            <div className="font-display text-base font-extrabold">目前尚無符合條件的蘑菇點位</div>
+            <p className={`font-mono text-xs mt-1 max-w-sm mx-auto ${isLight ? 'text-[#556B58]' : 'text-zinc-400'}`}>
               點擊右上角「新增點位」建立專屬蘑菇點位，或載入示範資料進行體驗。
             </p>
             <div className="mt-4 flex items-center justify-center gap-2 font-mono text-xs">
               <button
                 type="button"
                 onClick={handleLoadDemoData}
-                className="px-3.5 py-1.5 rounded-xl border border-tactical-border bg-zinc-900 hover:bg-zinc-800 text-zinc-200 transition-colors"
+                className={`px-3.5 py-1.5 rounded-xl border transition-all active:scale-95 ${
+                  isLight
+                    ? 'border-[#D6E5D0] bg-[#F4F8F1] hover:bg-[#E8F2E4] text-[#182B1B] font-bold shadow-sm'
+                    : 'border-tactical-border bg-zinc-900 hover:bg-zinc-800 text-zinc-200'
+                }`}
               >
                 載入示範資料
               </button>
               <button
                 type="button"
                 onClick={() => setIsNewModalOpen(true)}
-                className="px-3.5 py-1.5 bg-tactical-green hover:bg-tactical-green/90 text-black rounded-xl font-bold transition-transform active:scale-95 shadow-sm"
+                className={`px-3.5 py-1.5 rounded-xl font-bold transition-all duration-150 hover:scale-105 active:scale-95 shadow-sm ${
+                  isLight
+                    ? 'bg-[#2E9B0F] hover:bg-[#25820C] text-white shadow-md shadow-[#2E9B0F]/20'
+                    : 'bg-tactical-green hover:bg-tactical-green/90 text-black'
+                }`}
               >
                 新增第一個點位
               </button>
@@ -484,58 +587,112 @@ export const App: React.FC = () => {
         {/* 戰術實況小面板群（Contextual Quick Telemetry Panel） */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
           {/* 遠征小隊調度狀態 */}
-          <div className="p-3.5 rounded-xl bg-zinc-950 border border-tactical-border/70 flex items-center justify-between shadow-md">
+          <div
+            className={`p-3.5 rounded-xl border flex items-center justify-between shadow-sm transition-all duration-300 ${
+              isLight ? 'bg-white border-[#D6E5D0]' : 'bg-zinc-950 border-tactical-border/70'
+            }`}
+          >
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-tactical-border flex items-center justify-center text-tactical-green">
+              <div
+                className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                  isLight
+                    ? 'bg-[#E8F8E2] text-[#24800B]'
+                    : 'bg-zinc-900 border border-tactical-border text-tactical-green'
+                }`}
+              >
                 <ShieldCheck size={16} />
               </div>
               <div className="flex flex-col">
-                <span className="font-mono text-xs font-semibold text-zinc-200">遠征小隊調度狀態</span>
-                <span className="font-mono text-[10px] text-zinc-500">目前 40/40 隻皮克敏在編</span>
+                <span className="font-mono text-xs font-bold">遠征小隊調度狀態</span>
+                <span className={`font-mono text-[10px] ${isLight ? 'text-[#556B58]' : 'text-zinc-500'}`}>
+                  目前 40/40 隻皮克敏在編
+                </span>
               </div>
             </div>
-            <span className="px-2 py-0.5 rounded-full font-mono text-[10px] bg-tactical-moss border border-tactical-border text-tactical-green font-bold">
+            <span
+              className={`px-2 py-0.5 rounded-full font-mono text-[10px] font-bold ${
+                isLight
+                  ? 'bg-[#DCF5D6] text-[#18450c] border border-[#BCE7B4]'
+                  : 'bg-tactical-moss border border-tactical-border text-tactical-green'
+              }`}
+            >
               戰備充足
             </span>
           </div>
 
           {/* 特殊精華加成加權 */}
-          <div className="p-3.5 rounded-xl bg-zinc-950 border border-tactical-border/70 flex items-center justify-between shadow-md">
+          <div
+            className={`p-3.5 rounded-xl border flex items-center justify-between shadow-sm transition-all duration-300 ${
+              isLight ? 'bg-white border-[#D6E5D0]' : 'bg-zinc-950 border-tactical-border/70'
+            }`}
+          >
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-tactical-border flex items-center justify-center text-tactical-cyan">
+              <div
+                className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                  isLight
+                    ? 'bg-[#E0F2FE] text-[#0284C7]'
+                    : 'bg-zinc-900 border border-tactical-border text-tactical-cyan'
+                }`}
+              >
                 <Flame size={16} />
               </div>
               <div className="flex flex-col">
-                <span className="font-mono text-xs font-semibold text-zinc-200">特殊精華加成加權</span>
-                <span className="font-mono text-[10px] text-zinc-500">今日幸運色：紅色 / 櫻花</span>
+                <span className="font-mono text-xs font-bold">特殊精華加成加權</span>
+                <span className={`font-mono text-[10px] ${isLight ? 'text-[#556B58]' : 'text-zinc-500'}`}>
+                  今日幸運色：紅色 / 櫻花
+                </span>
               </div>
             </div>
-            <span className="px-2 py-0.5 rounded-full font-mono text-[10px] bg-zinc-900 border border-tactical-border text-tactical-cyan font-bold">
+            <span
+              className={`px-2 py-0.5 rounded-full font-mono text-[10px] font-bold ${
+                isLight
+                  ? 'bg-[#E0F2FE] text-[#0369A1] border border-[#BAE6FD]'
+                  : 'bg-zinc-900 border border-tactical-border text-tactical-cyan'
+              }`}
+            >
               +1.2x 傷害
             </span>
           </div>
 
           {/* 即時語音與蜂鳴提醒開關 */}
-          <div className="p-3.5 rounded-xl bg-zinc-950 border border-tactical-border/70 flex items-center justify-between shadow-md">
+          <div
+            className={`p-3.5 rounded-xl border flex items-center justify-between shadow-sm transition-all duration-300 ${
+              isLight ? 'bg-white border-[#D6E5D0]' : 'bg-zinc-950 border-tactical-border/70'
+            }`}
+          >
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-tactical-border flex items-center justify-center text-tactical-amber">
+              <div
+                className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                  isLight
+                    ? 'bg-[#FEF3C7] text-[#D97706]'
+                    : 'bg-zinc-900 border border-tactical-border text-tactical-amber'
+                }`}
+              >
                 <Bell size={16} />
               </div>
               <div className="flex flex-col">
-                <span className="font-mono text-xs font-semibold text-zinc-200">即時倒數預警提示</span>
-                <span className="font-mono text-[10px] text-zinc-500">提前 {settings.advanceWarningMinutes || 2} 分鐘提醒</span>
+                <span className="font-mono text-xs font-bold">即時倒數預警提示</span>
+                <span className={`font-mono text-[10px] ${isLight ? 'text-[#556B58]' : 'text-zinc-500'}`}>
+                  提前 {settings.advanceWarningMinutes || 2} 分鐘提醒
+                </span>
               </div>
             </div>
             <button
               type="button"
               onClick={handleToggleSound}
               aria-label="開關倒數提醒音效"
-              className={`w-11 h-6 rounded-full flex items-center px-1 transition-colors ${
-                settings.soundEnabled ? 'bg-tactical-green' : 'bg-zinc-800'
+              className={`w-11 h-6 rounded-full flex items-center px-1 transition-all duration-200 active:scale-95 ${
+                settings.soundEnabled
+                  ? isLight
+                    ? 'bg-[#2E9B0F]'
+                    : 'bg-tactical-green'
+                  : isLight
+                  ? 'bg-[#D6E5D0]'
+                  : 'bg-zinc-800'
               }`}
             >
               <div
-                className={`w-4 h-4 rounded-full bg-black shadow-sm transition-transform ${
+                className={`w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${
                   settings.soundEnabled ? 'translate-x-5' : 'translate-x-0'
                 }`}
               />
@@ -545,7 +702,11 @@ export const App: React.FC = () => {
       </main>
 
       {/* 底部資訊列 */}
-      <footer className="border-t border-tactical-border/60 bg-zinc-950 px-4 py-3.5 text-center font-mono text-[11px] space-y-1 text-zinc-400">
+      <footer
+        className={`border-t px-4 py-3.5 text-center font-mono text-[11px] space-y-1 transition-colors ${
+          isLight ? 'border-[#D6E5D0] bg-white/70 text-[#556B58]' : 'border-tactical-border/60 bg-zinc-950 text-zinc-400'
+        }`}
+      >
         <div className="flex items-center justify-center gap-2 flex-wrap">
           <span>皮克敏蘑菇追蹤儀表板</span>
           <span>·</span>
@@ -557,8 +718,12 @@ export const App: React.FC = () => {
           <span>·</span>
           <span>三大蘑菇體系管理</span>
         </div>
-        <div className="flex items-center justify-center gap-3 pt-1 text-zinc-400">
-          <button type="button" onClick={handleLoadDemoData} className="hover:text-white transition-colors">
+        <div className="flex items-center justify-center gap-3 pt-1">
+          <button
+            type="button"
+            onClick={handleLoadDemoData}
+            className={`transition-colors ${isLight ? 'text-[#2E9B0F] hover:underline font-bold' : 'hover:text-white'}`}
+          >
             重置示範資料
           </button>
           <span>·</span>
@@ -570,7 +735,7 @@ export const App: React.FC = () => {
                 saveSpots([]);
               }
             }}
-            className="text-tactical-crimson hover:underline"
+            className="text-red-500 hover:underline"
           >
             清空資料
           </button>
