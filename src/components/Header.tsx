@@ -1,14 +1,13 @@
 import React from 'react';
 import { DailyQuota } from '../types/mushroom';
 import { isWeekend } from '../utils/mushroomData';
-import { Sparkles, Moon, Sun, Bell, BellOff, BookOpen, Compass, Plus } from 'lucide-react';
+import { Sparkles, Moon, Sun, Bell, BellOff, Compass, Plus } from 'lucide-react';
 
 interface HeaderProps {
   quota: DailyQuota;
   onUpdateQuota: (delta: number) => void;
   onOpenNewModal: () => void;
   onOpenOledHud: () => void;
-  onOpenGuide: () => void;
   notificationsEnabled: boolean;
   onRequestNotificationPermission: () => void;
   theme: 'oled' | 'light';
@@ -20,7 +19,6 @@ export const Header: React.FC<HeaderProps> = ({
   onUpdateQuota,
   onOpenNewModal,
   onOpenOledHud,
-  onOpenGuide,
   notificationsEnabled,
   onRequestNotificationPermission,
   theme,
@@ -94,20 +92,9 @@ export const Header: React.FC<HeaderProps> = ({
               type="button"
               onClick={onOpenOledHud}
               title="開啟全螢幕常亮 HUD"
-              className="hidden sm:flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-zinc-900 border border-tactical-border text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors text-xs font-mono"
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-zinc-900 border border-tactical-border text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors text-xs font-mono"
             >
               <span>HUD</span>
-            </button>
-
-            {/* 說明指南按鈕 */}
-            <button
-              type="button"
-              onClick={onOpenGuide}
-              title="查看說明手冊與操作指南"
-              className="p-1.5 sm:p-2 rounded-xl bg-zinc-900 border border-tactical-border text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors"
-              aria-label="查看指南"
-            >
-              <BookOpen size={15} />
             </button>
 
             {/* 新增點位主要按鈕 */}

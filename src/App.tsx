@@ -15,8 +15,6 @@ import { Header } from './components/Header';
 import { MushroomCard } from './components/MushroomCard';
 import { MushroomModal } from './components/MushroomModal';
 import { OledHudModal } from './components/OledHudModal';
-import { GuideModal } from './components/GuideModal';
-import { ShortcutModal } from './components/ShortcutModal';
 import { Plus, CheckCircle2, Clock, Sparkles, Sprout, Flame, Bell, ShieldCheck } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -30,8 +28,6 @@ export const App: React.FC = () => {
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
   const [editingSpot, setEditingSpot] = useState<MushroomSpot | null>(null);
   const [isOledHudOpen, setIsOledHudOpen] = useState(false);
-  const [isGuideOpen, setIsGuideOpen] = useState(false);
-  const [isShortcutModalOpen, setIsShortcutModalOpen] = useState(false);
   const [filterMode, setFilterMode] = useState<'all' | 'active' | 'ready'>('all');
 
   // 通知權限狀態
@@ -325,7 +321,6 @@ export const App: React.FC = () => {
           setIsNewModalOpen(true);
         }}
         onOpenOledHud={() => setIsOledHudOpen(true)}
-        onOpenGuide={() => setIsGuideOpen(true)}
         notificationsEnabled={notificationsEnabled}
         onRequestNotificationPermission={handleRequestNotificationPermission}
         theme={theme}
@@ -454,7 +449,6 @@ export const App: React.FC = () => {
                   setEditingSpot(s);
                   setIsNewModalOpen(true);
                 }}
-                onOpenShortcutHelp={() => setIsShortcutModalOpen(true)}
                 theme={theme}
               />
             ))}
@@ -564,10 +558,6 @@ export const App: React.FC = () => {
           <span>三大蘑菇體系管理</span>
         </div>
         <div className="flex items-center justify-center gap-3 pt-1 text-zinc-400">
-          <button type="button" onClick={() => setIsGuideOpen(true)} className="hover:text-white transition-colors">
-            使用指南與平台設定
-          </button>
-          <span>·</span>
           <button type="button" onClick={handleLoadDemoData} className="hover:text-white transition-colors">
             重置示範資料
           </button>
@@ -604,19 +594,6 @@ export const App: React.FC = () => {
         onClose={() => setIsOledHudOpen(false)}
         spots={spots}
         currentTime={currentTime}
-      />
-
-      <GuideModal
-        isOpen={isGuideOpen}
-        onClose={() => setIsGuideOpen(false)}
-        onLoadDemoData={handleLoadDemoData}
-        theme={theme}
-      />
-
-      <ShortcutModal
-        isOpen={isShortcutModalOpen}
-        onClose={() => setIsShortcutModalOpen(false)}
-        theme={theme}
       />
     </div>
   );

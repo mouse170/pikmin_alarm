@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { MushroomSpot } from '../types/mushroom';
-import { Clock, CheckCircle2, Swords, RefreshCw, MoreVertical, Trash2, Edit2, AlertTriangle, Zap, Hourglass } from 'lucide-react';
-import { getMushroomMeta } from '../utils/mushroomData';
-import { isIOS, triggerIOSShortcutTimer } from '../utils/device';
+import { Clock, CheckCircle2, Swords, RefreshCw, MoreVertical, Trash2, Edit2, AlertTriangle, Hourglass, Sparkles } from 'lucide-react';
+import { getMushroomMeta, isWeekend } from '../utils/mushroomData';
 
 interface MushroomCardProps {
   spot: MushroomSpot;
@@ -10,7 +9,6 @@ interface MushroomCardProps {
   onUpdateSpot: (updated: MushroomSpot) => void;
   onDeleteSpot: (id: string) => void;
   onEditSpot: (spot: MushroomSpot) => void;
-  onOpenShortcutHelp?: () => void;
   theme?: 'oled' | 'light';
 }
 
@@ -26,7 +24,7 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
   const [showCustomBattleInput, setShowCustomBattleInput] = useState(false);
 
   const meta = getMushroomMeta(spot.typeId);
-  const isAppleDevice = isIOS();
+  const weekendActive = isWeekend();
 
   // 計算冷卻剩餘時間（毫秒），預設冷卻為 5 分鐘
   let remainingMs = 0;
@@ -101,7 +99,7 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
     setShowCustomBattleInput(false);
   };
 
-  // 重設為閒置狀態
+  // 重設為閒置待命狀態
   const handleReset = () => {
     onUpdateSpot({
       ...spot,
@@ -112,15 +110,9 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
     });
   };
 
-  // 喚醒 iOS 原生捷徑計時器
-  const handleTriggerShortcut = () => {
-    const remainingMinutes = Math.ceil(remainingMs / 60000);
-    triggerIOSShortcutTimer(remainingMinutes || 5);
-  };
-
   return (
     <article className="flex flex-col justify-between rounded-2xl bg-zinc-950 border border-tactical-border/70 p-4 shadow-xl relative overflow-hidden transition-all duration-300 hover:border-tactical-green/40 hover:bg-zinc-900/90">
-      {/* 頂部狀態細邊 */}
+      {/* 頂部狀態細邊（即時反映蘑菇狀態） */}
       <div
         className={`absolute top-0 left-0 right-0 h-1 transition-colors ${
           isReady
@@ -136,7 +128,7 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
       />
 
       <div className="space-y-3">
-        {/* 卡片標頭：分類、屬性標籤、名稱與功能選單 */}
+        {/* 卡片標頭：分類體系、屬性限定色標、名稱與管理選單 */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap mb-1">
@@ -156,18 +148,26 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
                   {spot.size === 'giant' ? '巨大' : '大'}
                 </span>
               )}
+
+              {/* 活動菇週末限定識別 */}
+              {spot.category === 'event' && spot.typeId === 'event_giant' && (
+                <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-tactical-crimson/15 text-tactical-crimson border border-tactical-crimson/30 flex items-center gap-1 font-semibold">
+                  <Sparkles size={9} />
+                  <span>{weekendActive ? '週末進行中' : '週末限定'}</span>
+                </span>
+              )}
             </div>
 
             <h3 className="font-display text-base font-bold tracking-tight text-white truncate">
               {spot.name}
             </h3>
 
-            {/* 限定派遣皮克敏提醒（元素菇專屬） */}
+            {/* 元素菇限定派遣提示（UI 自解釋 UX 規則） */}
             {meta.dispatchRule && (
               <div className="mt-1.5 p-1.5 px-2 rounded-lg bg-zinc-900/90 border border-tactical-amber/30 flex items-start gap-1.5 shadow-inner">
                 <AlertTriangle size={13} className="text-tactical-amber flex-shrink-0 mt-0.5" />
                 <p className="font-mono text-[11px] text-tactical-amber leading-tight">
-                  <span className="font-bold">限定：{meta.dispatchRule}</span>
+                  <span className="font-bold">限定派遣：{meta.dispatchRule}</span>
                 </p>
               </div>
             )}
@@ -179,7 +179,7 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
             )}
           </div>
 
-          {/* 更多功能選單 */}
+          {/* 更多管理選單 */}
           <div className="relative flex-shrink-0">
             <button
               type="button"
@@ -230,10 +230,10 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
           </div>
         </div>
 
-        {/* 內凹感應井（Recessed Sensor Well） */}
+        {/* 內凹感應井（Recessed Sensor Well）：呈現純 UX 狀態邏輯 */}
         <div className="rounded-xl bg-tactical-well border border-tactical-border/60 p-3.5 flex flex-col gap-2 shadow-inner relative">
           {isReady ? (
-            /* 已重生出現狀態 */
+            /* 狀態 A：已重生可進攻 */
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="w-9 h-9 rounded-full bg-tactical-green flex items-center justify-center text-black shadow-md flex-shrink-0">
@@ -244,7 +244,7 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
                     已重生出現！
                   </span>
                   <span className="font-mono text-[10px] text-zinc-400 truncate">
-                    可立即派兵進攻 · 搶先入隊
+                    冷卻完成 · 可立即派隊進攻搶位
                   </span>
                 </div>
               </div>
@@ -257,17 +257,17 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
               </button>
             </div>
           ) : isCooldown ? (
-            /* 5 分鐘重生倒數狀態 */
+            /* 狀態 B：5 分鐘冷卻倒數中（含 1~3 分鐘預警） */
             <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between gap-1">
+              <div className="flex items-center justify-between gap-1 flex-wrap">
                 <div className="flex items-center gap-1.5 text-tactical-cyan font-mono text-xs">
                   <Hourglass size={14} className="animate-spin-slow" />
                   <span>5 分鐘重生倒數中</span>
                 </div>
                 {isApproaching ? (
-                  <span className="px-1.5 py-0.5 rounded-full bg-tactical-amber/20 text-tactical-amber font-mono text-[10px] font-semibold flex items-center gap-1 border border-tactical-amber/40 animate-pulse">
+                  <span className="px-2 py-0.5 rounded-full bg-tactical-amber/20 text-tactical-amber font-mono text-[10px] font-semibold flex items-center gap-1 border border-tactical-amber/40 animate-pulse">
                     <span className="w-1.5 h-1.5 rounded-full bg-tactical-amber"></span>
-                    <span>即將出現 (1~3分)</span>
+                    <span>即將出現 (1~3分) · 請開啟遊戲準備進場</span>
                   </span>
                 ) : (
                   <span className="font-mono text-[10px] text-zinc-400">
@@ -294,22 +294,9 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
                   )}
                 </div>
 
-                <div className="flex items-center gap-1.5">
-                  <span className="font-mono text-[11px] text-tactical-green bg-tactical-green/15 px-1.5 py-0.5 rounded border border-tactical-green/30">
-                    {progressPercent.toFixed(1)}%
-                  </span>
-                  {isAppleDevice && (
-                    <button
-                      type="button"
-                      onClick={handleTriggerShortcut}
-                      className="flex items-center gap-1 px-2 py-0.5 rounded font-mono text-[10px] font-bold bg-tactical-moss border border-tactical-border text-tactical-green hover:bg-zinc-800 transition-colors"
-                      title="呼叫 iOS 捷徑開始計時"
-                    >
-                      <Zap size={11} className="text-tactical-green" />
-                      <span>捷徑計時</span>
-                    </button>
-                  )}
-                </div>
+                <span className="font-mono text-[11px] text-tactical-green bg-tactical-green/15 px-1.5 py-0.5 rounded border border-tactical-green/30">
+                  {progressPercent.toFixed(1)}%
+                </span>
               </div>
 
               {/* 髮絲進度條（Hairline Progress Line） */}
@@ -321,7 +308,7 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
               </div>
             </div>
           ) : isBattling ? (
-            /* 戰鬥中狀態 */
+            /* 狀態 C：戰鬥進行中 */
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between gap-1">
                 <div className="flex items-center gap-1.5 text-tactical-amber font-mono text-xs">
@@ -338,27 +325,14 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
                   {formatRemaining(remainingMs)}
                 </span>
 
-                <div className="flex items-center gap-1.5">
-                  {isAppleDevice && (
-                    <button
-                      type="button"
-                      onClick={handleTriggerShortcut}
-                      className="flex items-center gap-1 px-2 py-0.5 rounded font-mono text-[10px] font-bold bg-tactical-moss border border-tactical-border text-tactical-amber hover:bg-zinc-800 transition-colors"
-                      title="呼叫 iOS 捷徑開始計時"
-                    >
-                      <Zap size={11} className="text-tactical-amber" />
-                      <span>捷徑計時</span>
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    onClick={() => handleStartCooldown(5)}
-                    className="px-2 py-0.5 rounded bg-zinc-900 border border-tactical-border text-zinc-200 hover:bg-zinc-800 font-mono text-[11px] transition-colors"
-                    title="提早擊破並開始 5 分鐘重生冷卻"
-                  >
-                    提早打完
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => handleStartCooldown(5)}
+                  className="px-2.5 py-1 rounded bg-zinc-900 border border-tactical-border text-zinc-200 hover:bg-zinc-800 font-mono text-[11px] transition-colors"
+                  title="提早擊破並切換至 5 分鐘重生冷卻"
+                >
+                  提早打完
+                </button>
               </div>
 
               {/* 戰鬥進度條 */}
@@ -370,13 +344,13 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
               </div>
             </div>
           ) : (
-            /* 待命閒置狀態 */
+            /* 狀態 D：待命中 */
             <div className="flex items-center justify-between text-xs py-1 text-zinc-400 font-mono">
               <span className="flex items-center gap-1.5">
                 <Clock size={13} />
                 <span>目前狀態：待命中</span>
               </span>
-              <span className="text-[11px] text-zinc-500">點擊下方按鈕開始記錄</span>
+              <span className="text-[11px] text-zinc-500">點擊下方按鈕啟動 5 分鐘重生或自訂戰鬥</span>
             </div>
           )}
         </div>
@@ -403,7 +377,7 @@ export const MushroomCard: React.FC<MushroomCardProps> = ({
         </button>
       </div>
 
-      {/* 展開之戰鬥時間自訂區塊 */}
+      {/* 展開之自訂戰鬥時間面板 */}
       {showCustomBattleInput && (
         <div className="mt-2.5 p-3 rounded-xl bg-zinc-900 border border-tactical-border text-xs font-mono">
           <div className="mb-2 text-zinc-400">
