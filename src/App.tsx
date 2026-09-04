@@ -15,7 +15,7 @@ import { Header } from './components/Header';
 import { MushroomCard } from './components/MushroomCard';
 import { MushroomModal } from './components/MushroomModal';
 import { OledHudModal } from './components/OledHudModal';
-import { Plus, CheckCircle2, Clock, Sparkles, Sprout, Flame, Bell, ShieldCheck } from 'lucide-react';
+import { Plus, CheckCircle2, Clock, Sparkles, Sprout, Bell } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [spots, setSpots] = useState<MushroomSpot[]>([]);
@@ -360,17 +360,8 @@ export const App: React.FC = () => {
                 <div className="flex flex-col min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <h1 className="font-display font-extrabold text-base sm:text-lg tracking-tight">
-                      {isLight ? '花園營運監控儀表板' : 'Material 3 營運監控儀表板'}
+                      蘑菇監控儀表板
                     </h1>
-                    <span
-                      className={`font-mono text-[10px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider transition-colors ${
-                        isLight
-                          ? 'bg-[#E5F5E0] border border-[#BEE7B4] text-[#1F7308]'
-                          : 'bg-tactical-moss border border-tactical-border text-tactical-green'
-                      }`}
-                    >
-                      Seed: #3AC200
-                    </span>
                   </div>
                   <p
                     className={`font-mono text-xs flex items-center gap-1.5 mt-0.5 ${
@@ -584,77 +575,8 @@ export const App: React.FC = () => {
           </div>
         )}
 
-        {/* 戰術實況小面板群（Contextual Quick Telemetry Panel） */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
-          {/* 遠征小隊調度狀態 */}
-          <div
-            className={`p-3.5 rounded-xl border flex items-center justify-between shadow-sm transition-all duration-300 ${
-              isLight ? 'bg-white border-[#D6E5D0]' : 'bg-zinc-950 border-tactical-border/70'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <div
-                className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                  isLight
-                    ? 'bg-[#E8F8E2] text-[#24800B]'
-                    : 'bg-zinc-900 border border-tactical-border text-tactical-green'
-                }`}
-              >
-                <ShieldCheck size={16} />
-              </div>
-              <div className="flex flex-col">
-                <span className="font-mono text-xs font-bold">遠征小隊調度狀態</span>
-                <span className={`font-mono text-[10px] ${isLight ? 'text-[#556B58]' : 'text-zinc-500'}`}>
-                  目前 40/40 隻皮克敏在編
-                </span>
-              </div>
-            </div>
-            <span
-              className={`px-2 py-0.5 rounded-full font-mono text-[10px] font-bold ${
-                isLight
-                  ? 'bg-[#DCF5D6] text-[#18450c] border border-[#BCE7B4]'
-                  : 'bg-tactical-moss border border-tactical-border text-tactical-green'
-              }`}
-            >
-              戰備充足
-            </span>
-          </div>
-
-          {/* 特殊精華加成加權 */}
-          <div
-            className={`p-3.5 rounded-xl border flex items-center justify-between shadow-sm transition-all duration-300 ${
-              isLight ? 'bg-white border-[#D6E5D0]' : 'bg-zinc-950 border-tactical-border/70'
-            }`}
-          >
-            <div className="flex items-center gap-2.5">
-              <div
-                className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                  isLight
-                    ? 'bg-[#E0F2FE] text-[#0284C7]'
-                    : 'bg-zinc-900 border border-tactical-border text-tactical-cyan'
-                }`}
-              >
-                <Flame size={16} />
-              </div>
-              <div className="flex flex-col">
-                <span className="font-mono text-xs font-bold">特殊精華加成加權</span>
-                <span className={`font-mono text-[10px] ${isLight ? 'text-[#556B58]' : 'text-zinc-500'}`}>
-                  今日幸運色：紅色 / 櫻花
-                </span>
-              </div>
-            </div>
-            <span
-              className={`px-2 py-0.5 rounded-full font-mono text-[10px] font-bold ${
-                isLight
-                  ? 'bg-[#E0F2FE] text-[#0369A1] border border-[#BAE6FD]'
-                  : 'bg-zinc-900 border border-tactical-border text-tactical-cyan'
-              }`}
-            >
-              +1.2x 傷害
-            </span>
-          </div>
-
-          {/* 即時語音與蜂鳴提醒開關 */}
+        {/* 倒數預警提示控制面板 */}
+        <section className="pt-1">
           <div
             className={`p-3.5 rounded-xl border flex items-center justify-between shadow-sm transition-all duration-300 ${
               isLight ? 'bg-white border-[#D6E5D0]' : 'bg-zinc-950 border-tactical-border/70'
@@ -708,9 +630,7 @@ export const App: React.FC = () => {
         }`}
       >
         <div className="flex items-center justify-center gap-2 flex-wrap">
-          <span>皮克敏蘑菇追蹤儀表板</span>
-          <span>·</span>
-          <span>Material 3 Seed: #3AC200</span>
+          <span>蘑菇監控儀表板</span>
           <span>·</span>
           <span>5 分鐘重生</span>
           <span>·</span>
